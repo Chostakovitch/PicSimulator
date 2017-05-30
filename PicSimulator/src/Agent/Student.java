@@ -4,8 +4,11 @@ import Model.Pic;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 
+/**
+ * Agent dynamique représentant un étudiant.
+ */
 public class Student implements Steppable {
-    public int x, y;
+	private static final long serialVersionUID = 1L;
 
     public Student() {
 

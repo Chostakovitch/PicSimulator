@@ -3,6 +3,9 @@ import Model.Pic;
 import View.PicWithUI;
 import sim.display.Console;
 
+/**
+ * Classe de lancement de la simulation
+ */
 public class PicSimulatorMain {
     public static void main(String[] args) {
         runUI();

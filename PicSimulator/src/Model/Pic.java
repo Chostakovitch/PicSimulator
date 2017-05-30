@@ -1,28 +1,40 @@
 package Model;
 
+import Util.Constant;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
 
+/**
+ * Modèle du Pic. Permet de gérer l'environnement sous forme de grille, où les agents
+ * animés ou non interagissent. 
+ */
 public class Pic extends SimState {
-    public static int NB_DIRECTIONS = 8;
-    private SparseGrid2D yard = new SparseGrid2D(Constant.PIC_WIDTH, Constant.PIC_WIDTH);
+	private static final long serialVersionUID = 1L;
+	private SparseGrid2D pic = new SparseGrid2D(Constant.PIC_WIDTH, Constant.PIC_HEIGHT);
+    
     public Pic(long seed) {
         super(seed);
     }
 
     @Override
 	public void start() {
-        System.out.println("Simulation started");
+        System.out.println("GOD DAMN SIMULATION STARTED");
         super.start();
-        yard.clear();
+        pic.clear();
+        
+        //Ajout des agents
         addAgentsBartender();
     }
 
-    public SparseGrid2D getYard() {
-        return yard;
-    }
-
+    /**
+     * Ajoute les permanenciers à la grille
+     */
     private void addAgentsBartender() {
     	
+    }
+    
+
+    public SparseGrid2D getModel() {
+        return pic;
     }
 }
