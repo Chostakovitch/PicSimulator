@@ -10,7 +10,8 @@ public class Pic extends SimState {
         super(seed);
     }
 
-    public void start() {
+    @Override
+	public void start() {
         System.out.println("Simulation started");
         super.start();
         yard.clear();
@@ -22,5 +23,6 @@ public class Pic extends SimState {
     }
 
     private void addAgentsBartender() {
+    	
     }
 }
