@@ -4,4 +4,4 @@ Simulation du fonctionnement d'un bar (nommé le Pic'Asso, aussi connue comme le
 
 ## Technologie
 
-Ce projet est développé avec MASON, un environnement multiagent en JAVA.
+Ce projet est développé avec MASON, un environnement multiagent en JAVA permettant de mettre en place des simulations.
