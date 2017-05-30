@@ -1,6 +1,6 @@
 package Main;
-import Model.Beings;
-import View.BeingsWithUI;
+import Model.Pic;
+import View.PicWithUI;
 import sim.display.Console;
 
 public class PicSimulatorMain {
@@ -9,8 +9,8 @@ public class PicSimulatorMain {
     }
 
     private static void runUI() {
-        Beings model = new Beings(System.currentTimeMillis());
-        BeingsWithUI gui = new BeingsWithUI(model);
+        Pic model = new Pic(System.currentTimeMillis());
+        PicWithUI gui = new PicWithUI(model);
         Console console = new Console(gui);
         console.setVisible(true);
     }

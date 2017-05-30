@@ -5,7 +5,7 @@ import sim.field.grid.SparseGrid2D;
 
 public class Pic extends SimState {
     public static int NB_DIRECTIONS = 8;
-    private SparseGrid2D yard = new SparseGrid2D(Constant.GRID_SIZE, Constant.GRID_SIZE);
+    private SparseGrid2D yard = new SparseGrid2D(Constant.PIC_WIDTH, Constant.PIC_WIDTH);
     public Pic(long seed) {
         super(seed);
     }
