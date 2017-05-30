@@ -1,6 +1,6 @@
 package Agent;
 
-import Model.Beings;
+import Model.Pic;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 
@@ -13,6 +13,6 @@ public class Bartender implements Steppable {
 
     @Override
     public void step(SimState state) {
-        Beings beings = (Beings) state;
+        Pic pic = (Pic) state;
     }
 }

@@ -1,7 +1,7 @@
 package View;
 
 import Agent.Bartender;
-import Model.Beings;
+import Model.Pic;
 import sim.display.Controller;
 import sim.display.Display2D;
 import sim.display.GUIState;
@@ -13,11 +13,11 @@ import sim.portrayal.simple.OvalPortrayal2D;
 import javax.swing.*;
 import java.awt.*;
 
-public class BeingsWithUI extends GUIState {
+public class PicWithUI extends GUIState {
     private Display2D display;
     private SparseGridPortrayal2D yardPortrayal;
 
-    public BeingsWithUI(SimState state) {
+    public PicWithUI(SimState state) {
         super(state);
         yardPortrayal = new SparseGridPortrayal2D();
     }
@@ -33,8 +33,8 @@ public class BeingsWithUI extends GUIState {
     }
 
     private void setupPortrayals() {
-        Beings beings = (Beings) state;
-        yardPortrayal.setField(beings.getYard());
+        Pic pic = (Pic) state;
+        yardPortrayal.setField(pic.getYard());
         yardPortrayal.setPortrayalForClass(Bartender.class, getInsectPortrayal());
 
         display.reset();
@@ -64,7 +64,7 @@ public class BeingsWithUI extends GUIState {
         display = new Display2D(FRAME_SIZE, FRAME_SIZE,this);
         display.setClipping(false);
         JFrame displayFrame = display.createFrame();
-        displayFrame.setTitle("Beings");
+        displayFrame.setTitle("Pic");
         c.registerFrame(displayFrame); // so the frame appears in the "Display" list
         displayFrame.setVisible(true);
         display.attach( yardPortrayal, "Yard" );
