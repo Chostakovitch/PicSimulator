@@ -2,6 +2,8 @@ package Util;
 
 import java.time.LocalTime;
 
+import sim.util.Int2D;
+
 /**
  * Constantes paramétrant la simulation et de l'affichage
  */
@@ -65,4 +67,14 @@ public class Constant {
      * Temps, en secondes, concerné par une itération de la simulation
      */
     public static int TIMESTEP = 5;
+    
+    /**
+     * Nombre d'étudiants participant à la simulation (!= nombre d'étudiants dans le pic)
+     */
+    public static int STUDENT_NUMBER = 100;
+    
+    /**
+     * Position de l'entrée du Pic
+     */
+    public static Int2D PIC_ENTER = new Int2D(0, 0);
 }

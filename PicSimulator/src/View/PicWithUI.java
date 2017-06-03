@@ -1,10 +1,6 @@
 package View;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.time.Instant;
-import java.time.temporal.ChronoField;
 
 import javax.swing.JFrame;
 
@@ -16,9 +12,7 @@ import sim.display.Controller;
 import sim.display.Display2D;
 import sim.display.GUIState;
 import sim.engine.SimState;
-import sim.portrayal.DrawInfo2D;
 import sim.portrayal.Inspector;
-import sim.portrayal.grid.SparseGridPortrayal2D;
 import sim.portrayal.simple.OvalPortrayal2D;
 
 /**

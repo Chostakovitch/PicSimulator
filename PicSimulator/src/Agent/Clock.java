@@ -16,5 +16,10 @@ public class Clock implements Steppable {
 		
 		//Incrémentation du temps courant de la simulation
 		pic.incrCurrentTime();
+		
+		//On arrête la simulation à la fermeture du Pic
+		if(!pic.isPicOpened()) {
+			pic.finish();
+		}
 	}
 }
