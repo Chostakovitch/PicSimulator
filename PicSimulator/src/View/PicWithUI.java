@@ -7,7 +7,6 @@ import javax.swing.JFrame;
 import Agent.Bartender;
 import Agent.Student;
 import Model.Pic;
-import Model.PicGrid2D;
 import Util.Constant;
 import sim.display.Controller;
 import sim.display.Display2D;

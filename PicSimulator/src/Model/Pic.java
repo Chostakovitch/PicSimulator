@@ -60,6 +60,8 @@ public class Pic extends SimState {
     @Override
 	public void start() {
         System.out.println("GOD DAMN SIMULATION STARTED");
+        //Remise à zéro du temps
+    	time = timeslot.getStart();
         super.start();
         pic.clear();
         
@@ -69,13 +71,6 @@ public class Pic extends SimState {
         
         //Ajout de l'horloge
         addClock();
-    }
-    
-    @Override
-    public void finish() {
-    	super.finish();
-    	//Remise à zéro du temps
-    	time = timeslot.getStart();
     }
     
     /**

@@ -1,13 +1,16 @@
-package Model;
+package View;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.font.FontRenderContext;
+import java.awt.geom.Rectangle2D;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+import Model.Pic;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.portrayal.DrawInfo2D;
@@ -33,7 +36,7 @@ public class PicGrid2D extends SparseGridPortrayal2D {
 	public PicGrid2D(SimState state) {
 		super();
 		pic = (Pic) state;
-		font = new Font("SansSerif", 0, 25);
+		font = new Font("Dialog", Font.BOLD, 30);
 	}
 	
 	@Override
@@ -49,11 +52,6 @@ public class PicGrid2D extends SparseGridPortrayal2D {
 			String time = agnTime.format(DateTimeFormatter.ISO_LOCAL_TIME);
 			String nbStudents = "Étudiants : " + String.valueOf(pic.getStudentsInside());
 			
-			//Affichage
-			graphics.setColor(Color.BLUE);
-			graphics.drawString(time, 10, 10 * (int)(font.getStringBounds(time, graphics.getFontRenderContext()).getHeight()));
-			graphics.drawString(nbStudents, 10, 11 * (int)(font.getStringBounds(nbStudents, graphics.getFontRenderContext()).getHeight()));
-			
 			//Affichage supplémentaire d'une grille pour délimiter les cellules
 			graphics.setColor(Color.GRAY);
 			for(int i = 0; i < Constant.FRAME_WIDTH; i += Constant.FRAME_WIDTH / Constant.PIC_WIDTH) {
@@ -63,6 +61,14 @@ public class PicGrid2D extends SparseGridPortrayal2D {
 			for(int i = 0; i < Constant.FRAME_HEIGHT; i += Constant.FRAME_HEIGHT / Constant.PIC_HEIGHT) {
 				graphics.drawLine(0, i, Constant.FRAME_WIDTH, i);
 			}
+		
+			//Affichage des textes par dessus la grille
+			graphics.setColor(Color.BLACK);
+			graphics.setFont(font);
+			Rectangle2D recTime = font.getStringBounds(time, graphics.getFontRenderContext());
+			Rectangle2D recNbStudents = font.getStringBounds(nbStudents, graphics.getFontRenderContext());
+			graphics.drawString(time, (int)(info.draw.width - recTime.getWidth() - 10), (int)recTime.getHeight());
+			graphics.drawString(nbStudents, (int)(info.draw.width - recNbStudents.getWidth() - 10), 2 * (int)recNbStudents.getHeight());
 		}
 	}
 }
