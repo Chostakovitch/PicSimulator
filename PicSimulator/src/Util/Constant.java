@@ -24,6 +24,11 @@ public class Constant {
     public static int BARREL_CAPACITY = 30;
     
     /**
+     * Nombre maximum d'étudiants sur une case
+     */
+    public static int MAX_STUDENT_PER_CELL = 10;
+    
+    /**
      * Capacité d'une ecocup (en centilitres)
      */
     public static int CUP_CAPACITY = 33;

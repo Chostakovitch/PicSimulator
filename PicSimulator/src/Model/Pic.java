@@ -16,6 +16,7 @@ import Agent.Student;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
+import sim.util.Bag;
 import sim.util.Int2D;
 
 /**
@@ -95,17 +96,6 @@ public class Pic extends SimState {
     
     /**
      * Indique si une position est "valide", au sens des délimitations virtuelles de la grille (qui n'est pas bornée)
-     * @param pos Coordonnées
-     * @return true si la position est dans les délimitations virtuelles de la grille
-     */
-    public boolean isLocationValid(Int2D pos) {
-    	int x = pos.x;
-    	int y = pos.y;
-    	return  x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight();
-    }
-    
-    /**
-     * Indique si une position est "valide", au sens des délimitations virtuelles de la grille (qui n'est pas bornée)
      * @param x Coordonnée en abscisses
      * @param y Coordonnéé en ordonnées
      * @return true si la position est dans les délimitations virtuelles de la grille
@@ -115,8 +105,27 @@ public class Pic extends SimState {
     }
     
     /**
-     * Calcule un ensemble de position valides autour d'une position initiale,
+     * Indique si une position est "remplie", c'est à dire si le nombre maximal d'étudiants sur une case est atteint
+     * @param x Coordonnée en abscisses
+     * @param y Coordonnéé en ordonnées
+     * @return true si la capacité maximale en étudiants de la case est atteinte
+     */
+    public boolean isLocationFull(int x, int y) {
+    	int studentCount = 0;
+    	Bag objs = pic.getObjectsAtLocation(x, y);
+    	if(objs == null) return false;
+    	//On compte le nombre d'étudiants sur une case
+    	for(int i = 0; i < objs.size(); ++i) {
+    		if(objs.get(i) instanceof Student) ++studentCount;
+    	}
+    	return studentCount >= Constant.MAX_STUDENT_PER_CELL;
+    }
+    
+    /**
+     * Calcule un ensemble de position valides autour d'une position initiale pour un étudiant
      * sous forme d'un carré plein paramétré par un "rayon" maximal (une diagonale valant une unité)
+     * Une position est valide si elle est dans la grille et n'est pas occupée par un objet
+     * inanimé ou par un permanencier.
      * @param pos Position centrale
      * @param radius "Rayon" du carré
      * @return Liste de coordonnées valides
@@ -125,10 +134,10 @@ public class Pic extends SimState {
     	List<Int2D> possiblePos = new ArrayList<>();
     	int x = pos.x;
     	int y = pos.y;
-    	for(int i = x - 1; i <= x + 1; ++i) {
-    		for(int j = y - 1; j <= y + 1; ++j) {
+    	for(int i = x - radius; i <= x + radius; ++i) {
+    		for(int j = y - radius; j <= y + radius; ++j) {
     			//On ne prend pas en compte la position centrale
-    			if(!(i == x && j == y) && isLocationValid(i, j)) {
+    			if(!(i == x && j == y) && isLocationValid(i, j) && !isLocationFull(i, j)) {
     				possiblePos.add(new Int2D(i, j));
     			}
     		}

@@ -41,11 +41,12 @@ public class Student implements Steppable {
         Pic pic = (Pic) state;
         //L'étudiant n'est pas encore dans le Pic et doit y entrer
         if(!inside && mustEnterPic()) {
-        	//L'étudiant arrive à l'entrée du Pic
+        	//L'étudiant arrive à l'entrée du Pic, il bouge immédiatement sur une position valide
         	pic.getModel().setObjectLocation(this, Constant.PIC_ENTER);
         	pic.incrStudentsInside();
         	inside = true;
         	hasBeenInside = true;
+        	justMoveIt(pic);
         }
         
         //L'étudiant est dans le pic et doit en sortir
