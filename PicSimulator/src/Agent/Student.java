@@ -1,9 +1,13 @@
 package Agent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import Model.Pic;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.engine.Steppable;
+import sim.util.Int2D;
 
 /**
  * Agent dynamique représentant un étudiant (pas nécessairement au sein du Pic).
@@ -20,10 +24,16 @@ public class Student implements Steppable {
 	 * Indique si l'étudiant est précédemment entré dans le Pic.
 	 */
 	private boolean hasBeenInside;
+	
+	/**
+	 * Distance maximale de déplacementl
+	 */
+	private int walkCapacity;
 
     public Student() {
     	inside = false;
     	hasBeenInside = false;
+    	walkCapacity = Constant.STUDENT_WALK_CAPACITY;
     }
 
     @Override
@@ -47,8 +57,27 @@ public class Student implements Steppable {
         
         //L'étudiant était déjà dans le pic : il décide de l'action à effectuer
         else if(inside) {
-        	
+        	//L'étudiant doit effectuer un déplacement
+        	if(mustWalk()) justMoveIt(pic);
         }
+    }
+    
+    /**
+     * Déplace l'étudiant courant à un point aléatoire
+     * @param pic État de la simulation
+     */
+    private void justMoveIt(Pic pic)  {
+    	//Position courante
+    	Int2D currentPos = pic.getModel().getObjectLocation(this);
+    	
+    	//Positions possibles
+    	List<Int2D> possiblePos = pic.getSquareValidLocations(currentPos, walkCapacity);
+    			
+    	//Sélection d'une position aléatoire
+    	Int2D selectedPos = possiblePos.get(pic.random.nextInt(possiblePos.size()));
+    	
+    	//Mise à jour de la position
+    	pic.getModel().setObjectLocation(this, selectedPos);
     }
     
     /**
@@ -72,5 +101,15 @@ public class Student implements Steppable {
     private boolean mustLeavePic() throws IllegalStateException {
     	if(!inside) throw new IllegalStateException("Student is not inside Pic");
     	return Math.random() < 0.4;    	
+    }
+    
+    /**
+     * Indique si l'étudiant doit effectuer un déplacement
+     * @return Booléean
+     * @throws IllegalStateException si l'étudiant n'est pas dans le Pic
+     */
+    private boolean mustWalk() throws IllegalStateException {
+    	if(!inside) throw new IllegalStateException("Student is not inside Pic");
+    	return Math.random() < 0.5;
     }
 }

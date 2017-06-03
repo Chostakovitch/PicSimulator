@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.threeten.extra.Interval;
 
@@ -14,6 +16,7 @@ import Agent.Student;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
+import sim.util.Int2D;
 
 /**
  * Modèle du Pic. Permet de gérer l'environnement sous forme de grille, où les agents
@@ -88,6 +91,49 @@ public class Pic extends SimState {
      */
     public boolean isBeerTime() {
     	return beerTimeslot.contains(time);
+    }
+    
+    /**
+     * Indique si une position est "valide", au sens des délimitations virtuelles de la grille (qui n'est pas bornée)
+     * @param pos Coordonnées
+     * @return true si la position est dans les délimitations virtuelles de la grille
+     */
+    public boolean isLocationValid(Int2D pos) {
+    	int x = pos.x;
+    	int y = pos.y;
+    	return  x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight();
+    }
+    
+    /**
+     * Indique si une position est "valide", au sens des délimitations virtuelles de la grille (qui n'est pas bornée)
+     * @param x Coordonnée en abscisses
+     * @param y Coordonnéé en ordonnées
+     * @return true si la position est dans les délimitations virtuelles de la grille
+     */
+    public boolean isLocationValid(int x, int y) {
+    	return  x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight();
+    }
+    
+    /**
+     * Calcule un ensemble de position valides autour d'une position initiale,
+     * sous forme d'un carré plein paramétré par un "rayon" maximal (une diagonale valant une unité)
+     * @param pos Position centrale
+     * @param radius "Rayon" du carré
+     * @return Liste de coordonnées valides
+     */
+    public List<Int2D> getSquareValidLocations(Int2D pos, int radius) {
+    	List<Int2D> possiblePos = new ArrayList<>();
+    	int x = pos.x;
+    	int y = pos.y;
+    	for(int i = x - 1; i <= x + 1; ++i) {
+    		for(int j = y - 1; j <= y + 1; ++j) {
+    			//On ne prend pas en compte la position centrale
+    			if(!(i == x && j == y) && isLocationValid(i, j)) {
+    				possiblePos.add(new Int2D(i, j));
+    			}
+    		}
+    	}
+    	return possiblePos;
     }
     
     public SparseGrid2D getModel() {

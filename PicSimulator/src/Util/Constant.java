@@ -77,4 +77,9 @@ public class Constant {
      * Position de l'entrée du Pic
      */
     public static Int2D PIC_ENTER = new Int2D(0, 0);
+    
+    /**
+     * Distance à laquelle un étudiant peut se déplacer (au maximum) pendant une itération
+     */
+    public static int STUDENT_WALK_CAPACITY = 3;
 }
