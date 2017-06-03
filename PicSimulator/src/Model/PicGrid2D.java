@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+import Util.Constant;
 import sim.engine.SimState;
 import sim.portrayal.DrawInfo2D;
 import sim.portrayal.grid.SparseGridPortrayal2D;
@@ -50,8 +51,18 @@ public class PicGrid2D extends SparseGridPortrayal2D {
 			
 			//Affichage
 			graphics.setColor(Color.BLUE);
-			graphics.drawString(time, 10, (int)(font.getStringBounds(time, graphics.getFontRenderContext()).getHeight()));
-			graphics.drawString(nbStudents, 10, 2 * (int)(font.getStringBounds(nbStudents, graphics.getFontRenderContext()).getHeight()));
+			graphics.drawString(time, 10, 10 * (int)(font.getStringBounds(time, graphics.getFontRenderContext()).getHeight()));
+			graphics.drawString(nbStudents, 10, 11 * (int)(font.getStringBounds(nbStudents, graphics.getFontRenderContext()).getHeight()));
+			
+			//Affichage supplémentaire d'une grille pour délimiter
+			graphics.setColor(Color.GRAY);
+			for(int i = 0; i < Constant.FRAME_WIDTH; i += Constant.FRAME_WIDTH / Constant.PIC_WIDTH) {
+				graphics.drawLine(i, 0, i, Constant.FRAME_HEIGHT);
+			}
+			
+			for(int i = 0; i < Constant.FRAME_HEIGHT; i += Constant.FRAME_HEIGHT / Constant.PIC_HEIGHT) {
+				graphics.drawLine(0, i, Constant.FRAME_WIDTH, i);
+			}
 		}
 	}
 }

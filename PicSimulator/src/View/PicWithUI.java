@@ -5,6 +5,7 @@ import java.awt.Color;
 import javax.swing.JFrame;
 
 import Agent.Bartender;
+import Agent.Student;
 import Model.Pic;
 import Model.PicGrid2D;
 import Util.Constant;
@@ -55,8 +56,12 @@ public class PicWithUI extends GUIState {
         //Représentation des permanenciers
         gridGUI.setPortrayalForClass(Bartender.class, getBartenderPortrayal());
         
+        //Représentation des étudiants
+        gridGUI.setPortrayalForClass(Student.class, getStudentPortrayal());
+        
         display.reset();
         display.setBackdrop(Color.PINK);
+        
         display.repaint();
     }
 
@@ -69,6 +74,10 @@ public class PicWithUI extends GUIState {
         r.paint = Color.RED;
         r.filled = true;
         return r;
+    }
+    
+    private OvalPortrayal2D getStudentPortrayal() {
+    	return new StudentPortrayal(state);
     }
 
     @Override

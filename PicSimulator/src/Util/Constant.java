@@ -36,12 +36,12 @@ public class Constant {
     /**
      * Largeur de la console d'affichage
      */
-    public static int FRAME_WIDTH = 800;
+    public static int FRAME_WIDTH = 810;
     
     /**
      * Hauteur de la console d'affichage
      */
-    public static int FRAME_HEIGHT = 800;
+    public static int FRAME_HEIGHT = 810;
     
     /**
      * Heure d'ouverture du Pic
