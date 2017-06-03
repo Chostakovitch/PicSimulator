@@ -1,16 +1,22 @@
 package View;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.time.Instant;
+import java.time.temporal.ChronoField;
 
 import javax.swing.JFrame;
 
 import Agent.Bartender;
 import Model.Pic;
+import Model.PicGrid2D;
 import Util.Constant;
 import sim.display.Controller;
 import sim.display.Display2D;
 import sim.display.GUIState;
 import sim.engine.SimState;
+import sim.portrayal.DrawInfo2D;
 import sim.portrayal.Inspector;
 import sim.portrayal.grid.SparseGridPortrayal2D;
 import sim.portrayal.simple.OvalPortrayal2D;
@@ -26,11 +32,12 @@ public class PicWithUI extends GUIState {
     /**
      * Grille 2D pouvant représenter une grille avec plusieurs agents par case
      */
-    private SparseGridPortrayal2D gridGUI;
+    private PicGrid2D gridGUI;
 
     public PicWithUI(SimState state) {
         super(state);
-        gridGUI = new SparseGridPortrayal2D();
+        //Ajout de l'état de la simulation (temps du Pic)
+        gridGUI = new PicGrid2D(state); 
     }
 
     @Override
@@ -55,7 +62,7 @@ public class PicWithUI extends GUIState {
         gridGUI.setPortrayalForClass(Bartender.class, getBartenderPortrayal());
         
         display.reset();
-        display.setBackdrop(Color.orange);
+        display.setBackdrop(Color.PINK);
         display.repaint();
     }
 
@@ -89,8 +96,8 @@ public class PicWithUI extends GUIState {
 
     @Override
 	public Inspector getInspector() {
-        Inspector i  =  super.getInspector();
+        Inspector i = super.getInspector();
         i.setVolatile(true);
-        return  i;
+        return i;
     }
 }

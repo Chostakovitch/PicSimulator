@@ -9,6 +9,7 @@ import java.time.ZonedDateTime;
 
 import org.threeten.extra.Interval;
 
+import Agent.Clock;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
@@ -52,6 +53,22 @@ public class Pic extends SimState {
         
         //Ajout des agents
         addAgentsBartender();
+        
+        //Ajout de l'horloge
+        addClock();
+    }
+    
+    public SparseGrid2D getModel() {
+        return pic;
+    }
+    
+    
+    public void incrCurrentTime() {
+    	time = time.plusSeconds(Constant.TIMESTEP);
+    }
+    
+    public Instant getTime() {
+    	return time;
     }
 
     /**
@@ -61,9 +78,11 @@ public class Pic extends SimState {
     	
     }
     
-
-    public SparseGrid2D getModel() {
-        return pic;
+    /**
+     * Ajoute l'horloge représentant "l'heure réelle" à la simulation
+     */
+    private void addClock() {
+    	schedule.scheduleRepeating(new Clock());
     }
     
     /**
@@ -79,10 +98,18 @@ public class Pic extends SimState {
     	return instant;
     }
     
+    /**
+     * Teste si l'instant actuel est compris dans les heures d'ouverture du Pic
+     * @return true si le pic est ouvert
+     */
     private boolean isPicOpened() {
     	return timeslot.contains(time);
     }
     
+    /**
+     * Teste si l'instant actuel est compris dans les heures de service licence II du Pic
+     * @return true si on peut acheter des bières
+     */
     private boolean isBeerTime() {
     	return beerTimeslot.contains(time);
     }

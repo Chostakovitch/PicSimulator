@@ -60,4 +60,9 @@ public class Constant {
      * Heure de fin d'exploitation de la licence II du Pic
      */
     public static LocalTime PIC_BEER_END = LocalTime.of(21, 30);	
+    
+    /**
+     * Temps, en secondes, concerné par une itération de la simulation
+     */
+    public static int TIMESTEP = 5;
 }
