@@ -1,5 +1,7 @@
 package Util;
 
+import java.time.LocalTime;
+
 /**
  * Constantes paramétrant la simulation et de l'affichage
  */
@@ -38,4 +40,24 @@ public class Constant {
      * Hauteur de la console d'affichage
      */
     public static int FRAME_HEIGHT = 800;
+    
+    /**
+     * Heure d'ouverture du Pic
+     */
+    public static LocalTime PIC_BEGIN = LocalTime.of(10, 0);
+    
+    /**
+     * Heure de fermeture du Pic
+     */
+    public static LocalTime PIC_END = LocalTime.of(22, 30);
+    
+    /**
+     * Heure de début d'exploitation de la licence II du Pic
+     */
+    public static LocalTime PIC_BEER_BEGIN = LocalTime.of(18, 30);
+    
+    /**
+     * Heure de fin d'exploitation de la licence II du Pic
+     */
+    public static LocalTime PIC_BEER_END = LocalTime.of(21, 30);	
 }
