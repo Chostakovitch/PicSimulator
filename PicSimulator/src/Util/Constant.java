@@ -17,11 +17,55 @@ public class Constant {
      * Hauteur du Pic
      */
     public static int PIC_HEIGHT = 30;
+
+    /**
+     * Position des murs du Pic
+     */
+    public static Int2D PIC_WALLS[][] = {
+            // Murs extérieurs
+            {new Int2D(4, 4), new Int2D(4, 8)},
+            {new Int2D(4, 11), new Int2D(4, 20)},
+            {new Int2D(4, 24), new Int2D(4, 25)},
+
+
+            {new Int2D(5, 4), new Int2D(28, 4)},
+            {new Int2D(5, 25), new Int2D(28, 25)},
+
+            {new Int2D(28, 5), new Int2D(28, 7)},
+            {new Int2D(28, 11), new Int2D(28, 19)},
+            {new Int2D(28, 23), new Int2D(28, 25)},
+
+
+            // Murs intérieurs
+            {new Int2D(4, 8), new Int2D(8, 8)},
+            {new Int2D(12, 8), new Int2D(16, 8)},
+
+            {new Int2D(16, 4), new Int2D(16, 8)},
+            {new Int2D(10, 4), new Int2D(10, 8)},
+
+            {new Int2D(4, 11), new Int2D(14, 11)},
+            {new Int2D(16, 11), new Int2D(16, 15)},
+            {new Int2D(12, 15), new Int2D(16, 15)},
+            {new Int2D(12, 11), new Int2D(12, 15)},
+            {new Int2D(4, 15), new Int2D(10, 15)},
+
+    };
     
     /**
      * Capacité d'un fût de bière (en litres)
      */
     public static int BARREL_CAPACITY = 30;
+
+    /**
+     * Position des fûts de bière
+     */
+    public static Int2D BARREL_POSITIONS[] = {
+            new Int2D(6, 16),
+            new Int2D(8, 16),
+            new Int2D(10, 16),
+            new Int2D(12, 16),
+            new Int2D(14, 16),
+    };
     
     /**
      * Nombre maximum d'étudiants sur une case

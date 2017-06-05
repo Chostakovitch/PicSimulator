@@ -4,8 +4,10 @@ import java.awt.Color;
 
 import javax.swing.JFrame;
 
+import Agent.Barrel;
 import Agent.Bartender;
 import Agent.Student;
+import Agent.Wall;
 import Model.Pic;
 import Util.Constant;
 import sim.display.Controller;
@@ -14,6 +16,7 @@ import sim.display.GUIState;
 import sim.engine.SimState;
 import sim.portrayal.Inspector;
 import sim.portrayal.simple.OvalPortrayal2D;
+import sim.portrayal.simple.RectanglePortrayal2D;
 
 /**
  * Représentation graphique du Pic, permettant d'afficher l'interprétation 
@@ -57,11 +60,28 @@ public class PicWithUI extends GUIState {
         
         //Représentation des étudiants
         gridGUI.setPortrayalForClass(Student.class, getStudentPortrayal());
+
+        //Représentation des murs
+        gridGUI.setPortrayalForClass(Wall.class, getWallPortrayal());
+
+        //Représentation des fûts de bière
+        gridGUI.setPortrayalForClass(Barrel.class, getBarrelPortrayal());
         
         display.reset();
         display.setBackdrop(Color.PINK);
         
         display.repaint();
+    }
+
+    /**
+     * Renvoie la représentation graphique d'un fût de bière
+     * @return Rond de couleur
+     */
+    private OvalPortrayal2D getBarrelPortrayal() {
+        OvalPortrayal2D r = new OvalPortrayal2D();
+        r.paint = Color.YELLOW;
+        r.filled = true;
+        return r;
     }
 
     /**
@@ -71,6 +91,17 @@ public class PicWithUI extends GUIState {
     private OvalPortrayal2D getBartenderPortrayal() {
         OvalPortrayal2D r = new OvalPortrayal2D();
         r.paint = Color.RED;
+        r.filled = true;
+        return r;
+    }
+
+    /**
+     * Renvoie la représentation graphique d'un mur
+     * @return Carré de couleur
+     */
+    private RectanglePortrayal2D getWallPortrayal() {
+        RectanglePortrayal2D r = new RectanglePortrayal2D();
+        r.paint = Color.GRAY;
         r.filled = true;
         return r;
     }

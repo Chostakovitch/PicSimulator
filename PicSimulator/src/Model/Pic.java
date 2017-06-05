@@ -7,8 +7,11 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import Agent.Barrel;
+import Agent.Wall;
 import org.threeten.extra.Interval;
 
 import Agent.Clock;
@@ -66,8 +69,10 @@ public class Pic extends SimState {
         pic.clear();
         
         //Ajout des agents
+		addAgentsWall();
         addAgentsStudent();
         addAgentsBartender();
+        addAgentsBarrel();
         
         //Ajout de l'horloge
         addClock();
@@ -96,7 +101,13 @@ public class Pic extends SimState {
      * @return true si la position est dans les délimitations virtuelles de la grille
      */
     public boolean isLocationValid(int x, int y) {
-    	return  x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight();
+		Bag b = pic.getObjectsAtLocation(x, y);
+		if (b != null){
+			for (Object o : b) {
+				if (o.getClass() == Wall.class) return false;
+			}
+		}
+    	return x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight() ;
     }
     
     /**
@@ -168,8 +179,30 @@ public class Pic extends SimState {
      * Ajoute les permanenciers à la simulation
      */
     private void addAgentsBartender() {
-    	
+
     }
+
+	/**
+	 * Ajoute les murs à la simulation
+	 */
+	private void addAgentsWall() {
+		for(int i = 0; i < Constant.PIC_WALLS.length; i++) {
+			for (int x = Constant.PIC_WALLS[i][0].getX(); x <= Constant.PIC_WALLS[i][1].getX(); x++ ) {
+				for (int y = Constant.PIC_WALLS[i][0].getY(); y <= Constant.PIC_WALLS[i][1].getY(); y++ ) {
+					pic.setObjectLocation(new Wall(), x, y);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Ajoute les fûts de bière à la simulation
+	 */
+	private void addAgentsBarrel() {
+		for(int i = 0; i < Constant.BARREL_POSITIONS.length; i++) {
+			pic.setObjectLocation(new Barrel(), Constant.BARREL_POSITIONS[i].getX(), Constant.BARREL_POSITIONS[i].getY());
+		}
+	}
     
     /**
      * Ajoute les étudiants à la simulation.
