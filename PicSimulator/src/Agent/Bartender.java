@@ -10,6 +10,8 @@ import sim.engine.Steppable;
 public class Bartender implements Steppable {
 	private static final long serialVersionUID = 1L;
 
+	private WaitingLine waitingLine;
+
     public Bartender() {
 
     }
