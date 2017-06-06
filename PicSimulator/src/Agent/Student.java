@@ -1,6 +1,5 @@
 package Agent;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import Model.Pic;
@@ -25,7 +24,20 @@ public class Student implements Steppable {
 	 * Indique si l'étudiant est précédemment entré dans le Pic.
 	 */
 	private boolean hasBeenInside;
-	
+
+	/**
+	 * Indique si l'étudiant est dans une file d'attente pour se faire servir
+	 */
+	private boolean inWaitingLine;
+
+	/**
+	 * Indique si l'étudiant est en train de se faire servir
+	 * //TODO Vérifier que ça a un interet, sinon on peut juste garder inWaitingLine
+	 */
+	private boolean beingServe;
+
+	private float quantityBeer;
+
 	/**
 	 * Distance maximale de déplacementl
 	 */
@@ -35,12 +47,21 @@ public class Student implements Steppable {
     	inside = false;
     	hasBeenInside = false;
     	walkCapacity = Constant.STUDENT_WALK_CAPACITY;
+    	inWaitingLine = false;
+    	beingServe = false;
+		quantityBeer = 0f;
     }
 
     @Override
     public void step(SimState state) {
         Pic pic = (Pic) state;
         //L'étudiant n'est pas encore dans le Pic et doit y entrer
+
+		if(beingServe || inWaitingLine) {
+			//Si l'étudiant est en train d'être servi , il ne bouge pas
+			return;
+		}
+
         if(!inside && mustEnterPic()) {
         	//L'étudiant arrive à l'entrée du Pic, il bouge immédiatement sur une position valide
         	pic.getModel().setObjectLocation(this, Constant.PIC_ENTER);
@@ -119,8 +140,32 @@ public class Student implements Steppable {
 	 * Renvoie le type de bière que l'étudiant veut
 	 * @return type de bière
 	 */
-	public Beer getOrder() {
+	Beer getOrder() {
 		//TODO Surement un attribut / une liste des bières qu'un étudiant veut
     	return Beer.BarbarBok;
+	}
+
+	/**
+	 * L'étudiant rentre dans une file d'attente
+	 */
+	public void enterWaitingFile() {
+		//TODO Utiliser la méthode Agent.WaitingLine.enterLine(this)
+		inWaitingLine = true;
+	}
+
+	/**
+	 * L'étudiant se fait servir
+	 */
+	void serve() {
+		beingServe = true;
+		inWaitingLine = false;
+	}
+
+	/**
+	 * Fin du service
+	 */
+	void endServe() {
+		beingServe = false;
+		quantityBeer = 33f;
 	}
 }

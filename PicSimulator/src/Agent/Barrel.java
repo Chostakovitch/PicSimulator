@@ -3,16 +3,16 @@ package Agent;
 import Util.Beer;
 import Util.Constant;
 
+import java.util.ArrayList;
+
 /**
  * Agent statique représentant un fût de bière.
  */
 public class Barrel implements Inanimate {
-    /**
-     * Indique si le barrel est utilisé par un Bartender
-     */
-    private boolean isOccupied;
 
-    private boolean isBeingRefilled;
+    private ArrayList<Bartender> waitingList;
+
+    private Bartender usedBy;
 
     /**
      * Quantité actuelle du fût
@@ -24,16 +24,10 @@ public class Barrel implements Inanimate {
      */
     private Beer beerType;
 
-    /**
-     * Permet de savoir si le fût a besoin d'être remplit
-     */
-    private boolean needRefill;
-
     public Barrel(Beer beer) {
-        isOccupied = false;
         beerType = beer;
         actualQuantity = Constant.BARREL_CAPACITY;
-        needRefill = false;
+        waitingList = new ArrayList<>();
     }
 
     /**
@@ -45,27 +39,37 @@ public class Barrel implements Inanimate {
     }
 
     /**
-     * Permet de savoir si le fût est en train d'être remplit
-     * @return true si elle est en cours de recharge
+     * Permet à un permanencier de savoir si c'est à lui d'utiliser le fût
+     * C'est à lui si :
+     *      - Personne ne l'utilise et il est premier dans la liste
+     *      - Personne ne l'utilise et la liste est vide
+     * @param b permanencier
+     * @return Vrai si c'est au tour du permancier d'utiliser le fût
      */
-    public boolean isBeingRefilled() {
-        return isBeingRefilled;
+    boolean isMyTurnToUse(Bartender b) {
+        return usedBy == null && (waitingList.isEmpty() || waitingList.get(0) == b);
     }
 
     /**
-     * Permet de savoir si le fût est occupé pour servir
-     * @return true si il est utilisé
+     * Permet à un bartender de rentrer dans une file d'attente pour utiliser un fût
+     * @param b bartender
      */
-    public boolean isOccupied() {
-        return isOccupied;
+    void joinWaitingLine(Bartender b) {
+        waitingList.add(b);
     }
 
     /**
-     * Return vrai si le fût a besoin d'être remplit
-     * @return needRefill
+     * Le bartender devient "propriétaire" du barrel, personne d'autre ne peut l'utiliser
+     * @param b permanencier
      */
-    public boolean needRefill() {
-        return needRefill;
+    void useBarrel(Bartender b) {
+        if(usedBy != null) //TODO Gerer l'exception quelque part
+            throw new IllegalStateException("Ce fût est déjà utilisé");
+        else {
+            usedBy = b;
+            if(waitingList.get(0) == b)
+                waitingList.remove(b);
+        }
     }
 
     /**
@@ -73,13 +77,11 @@ public class Barrel implements Inanimate {
      * @param quantity quantité tirée
      * @return true si on a pu l'utiliser, faux si il n'y a pas assez de bière dans le fût
      */
-    public boolean pullBeer(float quantity) {
+    boolean pullBeer(float quantity) {
         if(quantity > actualQuantity) {
-            needRefill = true;
             return false;
         }
         else {
-            isOccupied = true;
             actualQuantity-=quantity;
             return true;
         }
@@ -88,22 +90,7 @@ public class Barrel implements Inanimate {
     /**
      * Fin de l'utilisation du fût
      */
-    public void endUseBarrel() {
-        isOccupied = false;
-    }
-
-    /**
-     * Action utilisé par les bartenders pour remplir le fût
-     */
-    public void refill() {
-        actualQuantity = Constant.BARREL_CAPACITY;
-        isBeingRefilled = true;
-    }
-
-    /**
-     * Fin du remplissage
-     */
-    public void endRefill() {
-        isBeingRefilled = false;
+    void endUseBarrel() {
+        usedBy = null;
     }
 }
