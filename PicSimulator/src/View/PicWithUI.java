@@ -4,10 +4,7 @@ import java.awt.Color;
 
 import javax.swing.JFrame;
 
-import Agent.Barrel;
-import Agent.Bartender;
-import Agent.Student;
-import Agent.Wall;
+import Agent.*;
 import Model.Pic;
 import Util.Constant;
 import sim.display.Controller;
@@ -64,8 +61,14 @@ public class PicWithUI extends GUIState {
         //Représentation des murs
         gridGUI.setPortrayalForClass(Wall.class, getWallPortrayal());
 
+        //Représentation du comptoir de bar
+        gridGUI.setPortrayalForClass(BarCounter.class, getBarCounterPortrayal());
+
         //Représentation des fûts de bière
         gridGUI.setPortrayalForClass(Barrel.class, getBarrelPortrayal());
+
+        //Représentation des files d'attente
+        gridGUI.setPortrayalForClass(WaitingLine.class, getWaitingLinePortrayal());
         
         display.reset();
         display.setBackdrop(Color.PINK);
@@ -102,6 +105,28 @@ public class PicWithUI extends GUIState {
     private RectanglePortrayal2D getWallPortrayal() {
         RectanglePortrayal2D r = new RectanglePortrayal2D();
         r.paint = Color.GRAY;
+        r.filled = true;
+        return r;
+    }
+
+    /**
+     * Renvoie la représentation graphique d'un morceau du comptoir du bar
+     * @return Carré de couleur
+     */
+    private RectanglePortrayal2D getBarCounterPortrayal() {
+        RectanglePortrayal2D r = new RectanglePortrayal2D();
+        r.paint = Color.BLACK;
+        r.filled = true;
+        return r;
+    }
+
+    /**
+     * Renvoie la représentation graphique d'une file d'attente
+     * @return Carré de couleur
+     */
+    private RectanglePortrayal2D getWaitingLinePortrayal() {
+        RectanglePortrayal2D r = new RectanglePortrayal2D();
+        r.paint = Color.CYAN;
         r.filled = true;
         return r;
     }

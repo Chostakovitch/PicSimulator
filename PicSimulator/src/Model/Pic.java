@@ -8,13 +8,10 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-import Agent.Barrel;
-import Agent.Wall;
+import Agent.*;
 import Util.Beer;
 import org.threeten.extra.Interval;
 
-import Agent.Clock;
-import Agent.Student;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
@@ -73,8 +70,9 @@ public class Pic extends SimState {
         
         //Ajout des agents
 		addAgentsWall();
+		addAgentsBarCounter();
         addAgentsStudent();
-        addAgentsBartender();
+        addAgentsBartenderAndWaitingLine();
         addAgentsBarrel();
         
         //Ajout de l'horloge
@@ -184,13 +182,6 @@ public class Pic extends SimState {
     	return studentsInside;
     }
 
-    /**
-     * Ajoute les permanenciers à la simulation
-     */
-    private void addAgentsBartender() {
-
-    }
-
 	/**
 	 * Ajoute les murs à la simulation
 	 */
@@ -199,6 +190,19 @@ public class Pic extends SimState {
 			for (int x = Constant.PIC_WALLS[i][0].getX(); x <= Constant.PIC_WALLS[i][1].getX(); x++ ) {
 				for (int y = Constant.PIC_WALLS[i][0].getY(); y <= Constant.PIC_WALLS[i][1].getY(); y++ ) {
 					pic.setObjectLocation(new Wall(), x, y);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Ajoute le comptoir de bar à la simulation
+	 */
+	private void addAgentsBarCounter() {
+		for(int i = 0; i < Constant.PIC_BAR_COUNTER.length; i++) {
+			for (int x = Constant.PIC_BAR_COUNTER[i][0].getX(); x <= Constant.PIC_BAR_COUNTER[i][1].getX(); x++ ) {
+				for (int y = Constant.PIC_BAR_COUNTER[i][0].getY(); y <= Constant.PIC_BAR_COUNTER[i][1].getY(); y++ ) {
+					pic.setObjectLocation(new BarCounter(), x, y);
 				}
 			}
 		}
@@ -214,6 +218,20 @@ public class Pic extends SimState {
 			Int2D pos = Constant.BARREL_POSITIONS[i];
 			pic.setObjectLocation(b, pos.getX(), pos.getY());
 			barrels.put(b, pos);
+		}
+	}
+
+	/**
+	 * Ajoute les fûts de bière à la simulation
+	 */
+	private void addAgentsBartenderAndWaitingLine() {
+		for(int i = 0; i < Constant.BARTENDER_POSITIONS.length; i++) {
+			Int2D pos = Constant.BARTENDER_POSITIONS[i];
+			WaitingLine w = new WaitingLine();
+			Bartender b = new Bartender(w, 10, 10, pos);
+			pic.setObjectLocation(b, pos.getX(), pos.getY());
+			pic.setObjectLocation(w, pos.getX(), pos.getY()+2);
+
 		}
 	}
     

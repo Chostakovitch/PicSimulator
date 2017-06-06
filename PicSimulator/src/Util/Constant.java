@@ -50,7 +50,13 @@ public class Constant {
             {new Int2D(4, 15), new Int2D(10, 15)},
 
     };
-    
+
+    public static Int2D PIC_BAR_COUNTER[][] = {
+            {new Int2D(5, 19), new Int2D(16, 19)},
+            {new Int2D(16, 16), new Int2D(16, 18)},
+
+    };
+
     /**
      * Capacité d'un fût de bière (en litres)
      */
@@ -65,6 +71,23 @@ public class Constant {
             new Int2D(10, 16),
             new Int2D(12, 16),
             new Int2D(14, 16),
+    };
+
+    /**
+     * Position des files d'attentes
+     */
+    public static Int2D BARTENDER_POSITIONS[] = {
+            new Int2D(5, 18),
+            new Int2D(6, 18),
+            new Int2D(7, 18),
+            new Int2D(8, 18),
+            new Int2D(9, 18),
+            new Int2D(10, 18),
+            new Int2D(11, 18),
+            new Int2D(12, 18),
+            new Int2D(13, 18),
+            new Int2D(14, 18),
+            new Int2D(15, 18),
     };
     
     /**
