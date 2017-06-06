@@ -6,12 +6,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import Agent.Barrel;
 import Agent.Wall;
+import Util.Beer;
 import org.threeten.extra.Interval;
 
 import Agent.Clock;
@@ -49,6 +48,8 @@ public class Pic extends SimState {
 	 * Nombre d'étudiants au Pic
 	 */
 	private int studentsInside;
+
+	private HashMap<Barrel, Int2D> barrels;
 	
     public Pic(long seed) {
     	super(seed);
@@ -56,6 +57,8 @@ public class Pic extends SimState {
     	beerTimeslot = Interval.of(getUTCInstant(Constant.PIC_BEER_BEGIN), getUTCInstant(Constant.PIC_BEER_END));
     	//On considère que la simulation commence à l'ouverture du Pic
     	time = timeslot.getStart();
+
+    	barrels = new HashMap<>();
     	
     	studentsInside = 0;
     }
@@ -93,8 +96,8 @@ public class Pic extends SimState {
     public boolean isBeerTime() {
     	return beerTimeslot.contains(time);
     }
-    
-    /**
+
+	/**
      * Indique si une position est "valide", au sens des délimitations virtuelles de la grille (qui n'est pas bornée)
      * @param x Coordonnée en abscisses
      * @param y Coordonnéé en ordonnées
@@ -126,6 +129,12 @@ public class Pic extends SimState {
     	}
     	return studentCount >= Constant.MAX_STUDENT_PER_CELL;
     }
+
+    public Map.Entry<Barrel, Int2D> getBarrel(Beer b) {
+    	Optional<Map.Entry<Barrel,Int2D>> optionalBarrel = barrels.entrySet().stream()
+				.filter(barrelInt2DEntry -> barrelInt2DEntry.getKey().getType() == b).findFirst();
+		return optionalBarrel.orElse(null);
+	}
     
     /**
      * Calcule un ensemble de position valides autour d'une position initiale pour un étudiant
@@ -199,8 +208,12 @@ public class Pic extends SimState {
 	 * Ajoute les fûts de bière à la simulation
 	 */
 	private void addAgentsBarrel() {
+		List<Beer> beerList = Arrays.asList(Beer.values());
 		for(int i = 0; i < Constant.BARREL_POSITIONS.length; i++) {
-			pic.setObjectLocation(new Barrel(), Constant.BARREL_POSITIONS[i].getX(), Constant.BARREL_POSITIONS[i].getY());
+			Barrel b = new Barrel(beerList.get(i));
+			Int2D pos = Constant.BARREL_POSITIONS[i];
+			pic.setObjectLocation(b, pos.getX(), pos.getY());
+			barrels.put(b, pos);
 		}
 	}
     

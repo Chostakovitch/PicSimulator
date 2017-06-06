@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Model.Pic;
+import Util.Beer;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.engine.Steppable;
@@ -113,4 +114,13 @@ public class Student implements Steppable {
     	if(!inside) throw new IllegalStateException("Student is not inside Pic");
     	return Math.random() < 0.5;
     }
+
+	/**
+	 * Renvoie le type de bière que l'étudiant veut
+	 * @return type de bière
+	 */
+	public Beer getOrder() {
+		//TODO Surement un attribut / une liste des bières qu'un étudiant veut
+    	return Beer.BarbarBok;
+	}
 }
