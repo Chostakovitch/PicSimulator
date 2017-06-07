@@ -137,7 +137,8 @@ public class Bartender implements Steppable {
         Beer beerToServe = studentToServe.getOrder();
         Map.Entry<Barrel, Int2D> entry = pic.getBarrel(beerToServe);
         if(entry!=null) {
-            pic.getModel().setObjectLocation(this, entry.getValue());
+            Int2D locationBarrel = entry.getValue();
+            pic.getModel().setObjectLocation(this, locationBarrel.getX(), locationBarrel.getY()-1);
             barrelUsed = entry.getKey();
             if(barrelUsed.isMyTurnToUse(this)) {
                 barrelUsed.useBarrel(this);
