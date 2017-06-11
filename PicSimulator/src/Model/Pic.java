@@ -47,6 +47,8 @@ public class Pic extends SimState {
 	private int studentsInside;
 
 	private HashMap<Barrel, Int2D> barrels;
+
+	private CheckoutCounter cc;
 	
     public Pic(long seed) {
     	super(seed);
@@ -74,7 +76,8 @@ public class Pic extends SimState {
         addAgentsStudent();
         addAgentsBartenderAndWaitingLine();
         addAgentsBarrel();
-        
+        addAgentsBarCounter();
+
         //Ajout de l'horloge
         addClock();
     }
@@ -209,6 +212,14 @@ public class Pic extends SimState {
 	}
 
 	/**
+	 * Ajouter la caisse enregistreuse
+	 */
+	private void addAgentsCheckoutCounter() {
+		cc = new CheckoutCounter();
+		//TODO Add checkout counter dans l'UI (à la place d'un des barrels)
+	}
+
+	/**
 	 * Ajoute les fûts de bière à la simulation
 	 */
 	private void addAgentsBarrel() {
@@ -228,7 +239,7 @@ public class Pic extends SimState {
 		for(int i = 0; i < Constant.BARTENDER_POSITIONS.length; i++) {
 			Int2D pos = Constant.BARTENDER_POSITIONS[i];
 			WaitingLine w = new WaitingLine();
-			Bartender b = new Bartender(w, 10, 10, pos);
+			Bartender b = new Bartender(w, 10, 10, 10, pos);
 			pic.setObjectLocation(b, pos.getX(), pos.getY());
 			pic.setObjectLocation(w, pos.getX(), pos.getY()+2);
 
@@ -245,7 +256,7 @@ public class Pic extends SimState {
      */
     private void addAgentsStudent() {
     	for(int i = 0; i < Constant.STUDENT_NUMBER; ++i) {
-    		schedule.scheduleRepeating(new Student());
+    		schedule.scheduleRepeating(new Student(10));
     	}
     }
     
@@ -268,4 +279,12 @@ public class Pic extends SimState {
     	Instant instant = zonedTodayWithTime.toInstant();
     	return instant;
     }
+
+    public CheckoutCounter getCheckoutCounter() {
+    	return cc;
+	}
+
+	public Int2D getCheckoutCounterLocation() {
+    	return pic.getObjectLocation(cc);
+	}
 }

@@ -36,7 +36,13 @@ public class Student implements Steppable {
 	 */
 	private boolean beingServe;
 
+	/**
+	 *
+	 * Quantité de bière dans le verre, se vide au fur et à mesure et se remplit au bar
+	 */
 	private float quantityBeer;
+
+	private float payutc;
 
 	/**
 	 * Distance maximale de déplacementl
@@ -50,7 +56,24 @@ public class Student implements Steppable {
     	inWaitingLine = false;
     	beingServe = false;
 		quantityBeer = 0f;
+		payutc = 0;
     }
+
+	/**
+	 * //TODO Utiliser cette méthode quand on aura les chiffres
+	 * @param money Argent au début de la simulation
+	 */
+	public Student(float money) {
+		inside = false;
+		hasBeenInside = false;
+		walkCapacity = Constant.STUDENT_WALK_CAPACITY;
+		inWaitingLine = false;
+		beingServe = false;
+		quantityBeer = 0f;
+		payutc = money;
+	}
+
+
 
     @Override
     public void step(SimState state) {
@@ -167,5 +190,32 @@ public class Student implements Steppable {
 	void endServe() {
 		beingServe = false;
 		quantityBeer = 33f;
+	}
+
+	/**
+	 * Retourne le solde payutc actuel de l'étudiant
+	 * @return solde payutc
+	 */
+	double getPayutc() {
+		return payutc;
+	}
+
+	/**
+	 * Préviens l'étudiant qu'il n'a pas assez d'argent sur son compte
+	 */
+	void notEnoughMoney() {
+		beingServe = false;
+		//TODO L'étudiant doit recharger si il veut boire
+		//TODO Certains ne voudront pas et d'autres rechargeront probablement ?
+		//TODO Puis il doit refaire la queue (si il a rechargé)
+	}
+
+	/**
+	 * Permet à l'étudiant de recharger son compte
+	 * //TODO Probablement pas instantannée ?
+	 * @param money quantité ajoutée au compte
+	 */
+	private void rechargePayutc(float money) {
+		payutc += money;
 	}
 }
