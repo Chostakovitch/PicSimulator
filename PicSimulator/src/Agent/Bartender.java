@@ -152,7 +152,7 @@ public class Bartender implements Steppable {
                     barrelUsed.endUseBarrel();
                     barrelUsed = null;
                     pic.getModel().setObjectLocation(this, initialPosition);
-                    studentToServe.endServe();
+                    studentToServe.endServe(beerToServe.getPrice());
                     studentToServe = null;
                     beerToServe = null;
                     timeServing = speedToServe;
@@ -169,43 +169,6 @@ public class Bartender implements Steppable {
                     timeRefilling--;
                 break;
         }
-
-//        if(action == NOTHING) {
-//            if(!waitingLine.isEmpty()) {
-//                takeOrder(pic);
-//            }
-//        }
-//        else {
-//            if(isInWaitingLine) { // dans la file d'attente
-//                if(barrelUsed.isMyTurnToUse(this)) {
-//                    barrelUsed.useBarrel(this);
-//                    isUsingBarrel = true;
-//                    isInWaitingLine = false;
-//                }
-//            }
-//            else {
-//                if(isRefillingBarrel) { //en train de recharger un fût
-//                    if(timeRefilling == 0) {
-//                        isRefillingBarrel = false;
-//                        timeRefilling = speedToRefill;
-//                    }
-//                    else
-//                        timeRefilling--;
-//                }
-//                else {
-//                    if (timeServing == 0) { //a fini de servir
-//                        studentToServe.endServe();
-//                        studentToServe = null;
-//                        barrelUsed.endUseBarrel();
-//                        barrelUsed = null;
-//                        timeServing = speedToServe;
-//                        pic.getModel().setObjectLocation(this, initialPosition);
-//                        isUsingBarrel = false;
-//                    } else //est en train de servir
-//                        timeServing--;
-//                }
-//            }
-//        }
     }
 
     /**

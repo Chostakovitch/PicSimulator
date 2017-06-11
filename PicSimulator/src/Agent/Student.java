@@ -187,8 +187,9 @@ public class Student implements Steppable {
 	/**
 	 * Fin du service
 	 */
-	void endServe() {
+	void endServe(double cost) {
 		beingServe = false;
+		payutc -= cost;
 		quantityBeer = 33f;
 	}
 
