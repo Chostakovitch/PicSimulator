@@ -88,6 +88,8 @@ public class Constant {
             new Int2D(14, 18),
             new Int2D(15, 18),
     };
+
+    public static Int2D PIC_CHECKOUT_COUNTER_POSITION = new Int2D(15, 16);
     
     /**
      * Nombre maximum d'étudiants sur une case
