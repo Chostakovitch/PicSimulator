@@ -28,6 +28,7 @@ public class Barrel implements Inanimate {
         beerType = beer;
         actualQuantity = Constant.BARREL_CAPACITY;
         waitingList = new ArrayList<>();
+        usedBy = null;
     }
 
     /**
