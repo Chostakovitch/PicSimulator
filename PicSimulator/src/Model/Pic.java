@@ -92,6 +92,7 @@ public class Pic extends SimState {
         addAgentsBartenderAndWaitingLine();
         addAgentsBarrel();
         addAgentsBarCounter();
+        addAgentsCheckoutCounter();
 
         //Ajout de l'horloge
         addClock();
@@ -278,7 +279,8 @@ public class Pic extends SimState {
 	 */
 	private void addAgentsCheckoutCounter() {
 		cc = new CheckoutCounter();
-		//TODO Add checkout counter dans l'UI (à la place d'un des barrels)
+		Int2D pos = Constant.PIC_CHECKOUT_COUNTER_POSITION;
+		pic.setObjectLocation(cc, pos.x, pos.y);
 	}
 
 	/**
