@@ -238,7 +238,7 @@ public class Pic extends SimState {
      * Calcule toutes les positions invalides de la grille (au sens de isLocationValid)
      * @return Liste des positions invalides
      */
-    private List<Int2D> getAllInvalidLocations()
+    private List<Int2D> getAllInvalidLocations() {
     	List<Int2D> pos = new ArrayList<>();
     	for(int i = 0; i < pic.getHeight(); ++i) {
     		for(int j = 0; j < pic.getWidth(); ++j) {
