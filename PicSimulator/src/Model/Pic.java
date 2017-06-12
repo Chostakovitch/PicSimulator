@@ -6,12 +6,27 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import Agent.*;
-import Util.Beer;
 import org.threeten.extra.Interval;
 
+import Agent.BarCounter;
+import Agent.Barrel;
+import Agent.Bartender;
+import Agent.CheckoutCounter;
+import Agent.Clock;
+import Agent.Inanimate;
+import Agent.Student;
+import Agent.WaitingLine;
+import Agent.Wall;
+import PathFinding.AStar;
+import PathFinding.Node;
+import Util.Beer;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
@@ -99,19 +114,24 @@ public class Pic extends SimState {
     }
 
 	/**
-     * Indique si une position est "valide", au sens des délimitations virtuelles de la grille (qui n'est pas bornée)
+     * Indique si une position est "valide" pour un déplacement :
+     *  - Si la position est dans les délimitations virtuelles de la grille (qui n'est pas bornée) ;
+     *  - Si la position n'est pas celle d'un objet inanimé
+     *  - Si la position n'est pas pleine
      * @param x Coordonnée en abscisses
      * @param y Coordonnéé en ordonnées
      * @return true si la position est dans les délimitations virtuelles de la grille
      */
     public boolean isLocationValid(int x, int y) {
+    	if(x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight()) return false;
+    	if(isLocationFull(x, y)) return false;
 		Bag b = pic.getObjectsAtLocation(x, y);
-		if (b != null){
+		if (b != null) {
 			for (Object o : b) {
 				if (o instanceof Inanimate) return false;
 			}
 		}
-    	return x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight() ;
+    	return true;
     }
     
     /**
@@ -161,6 +181,34 @@ public class Pic extends SimState {
     	return possiblePos;
     }
     
+    /**
+     * Calcule le chemin le plus court entre deux positions sur la grille. Évite les objets qui
+     * implémente l'interface Inanimate. L'algorithme utilisé est A*, implémenté en Java par Marcelo Surriabre,
+     * et cloné depuis son GitHub : https://github.com/marcelo-s/A-Star-Java-Implementation
+     * @param start Position de départ
+     * @param end Position de fin
+     * @return Liste de positions pour aller jusqu'à la destination souhaitée
+     */
+    public List<Int2D> getPath(Int2D start, Int2D end) {
+    	//Noeuds de départ de d'arrivée
+    	Node initialPos = new Node(start.x, start.y);
+    	Node finalPos = new Node(end.x, end.y);
+    	
+    	//Construction de la grille utilisée par A*
+    	AStar aStar = new AStar(Constant.PIC_HEIGHT, Constant.PIC_WIDTH, initialPos, finalPos);
+    	
+    	//Construction de l'ensemble des noeuds bloquants
+    	List<Int2D> blocks = getAllInvalidLocations();
+    	aStar.setBlocks(blocks);
+    	
+    	//Calcul et conversion du chemin
+    	List<Node> path = aStar.findPath();
+    	List<Int2D> pathPos = new ArrayList<>();
+    	for(Node node : path) pathPos.add(new Int2D(node.getRow(), node.getCol()));
+    	
+    	return pathPos;
+    }
+    
     public SparseGrid2D getModel() {
         return pic;
     }
@@ -183,6 +231,20 @@ public class Pic extends SimState {
     
     public int getStudentsInside() {
     	return studentsInside;
+    }
+    
+    /**
+     * Calcule toutes les positions invalides de la grille (au sens de isLocationValid)
+     * @return Liste des positions invalides
+     */
+    private List<Int2D> getAllInvalidLocations()
+    	List<Int2D> pos = new ArrayList<>();
+    	for(int i = 0; i < pic.getHeight(); ++i) {
+    		for(int j = 0; j < pic.getWidth(); ++j) {
+    			if(!isLocationValid(i, j)) pos.add(new Int2D(i, j));
+    		}
+    	}
+    	return pos;
     }
 
 	/**

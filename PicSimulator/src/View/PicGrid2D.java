@@ -3,7 +3,6 @@ package View;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 import java.time.Instant;
 import java.time.LocalTime;

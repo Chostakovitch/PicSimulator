@@ -18,7 +18,7 @@ public class WaitingLine implements Inanimate {
     }
 
     public Student getStudent() {
-        int nbStudent = studentLine.size()<3?studentLine.size():3;
+        int nbStudent = studentLine.size() < 3? studentLine.size() : 3;
         int randomNum = ThreadLocalRandom.current().nextInt(0, nbStudent);
         return studentLine.remove(randomNum);
     }
