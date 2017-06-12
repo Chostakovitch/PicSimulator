@@ -15,10 +15,36 @@ import sim.util.Int2D;
 public class Student implements Steppable {
 	private static final long serialVersionUID = 1L;
 	
+	//Constantes de tous les états possibles de l'étudiant
 	/**
-	 * Indique si l'étudiant est dans le Pic.
+	 * L'étudiant ne fait rien de spécial, il doit prendre une décision
 	 */
-	private boolean inside;
+	private static final int NOTHING = 0;
+	/**
+	 * L'étudiant est dans la file d'attente pour se faire servir une bière
+	 */
+	private static final int WAITING_IN_QUEUE = 1;
+	/**
+	 * L'étudiant est en train d'être servi
+	 */
+	private static final int WAITING_FOR_BEER = 2;
+	/**
+	 * L'étudiant est en train de se déplacer
+	 */
+	private static final int WALKING = 3;
+	/**
+	 * L'étudiant est pauvre et n'a pas assez d'argent pour une bière
+	 */
+	private static final int POOR = 4;
+	/**
+	 * L'étudiant n'est pas dans le Pic
+	 */
+	private static final int OUTSIDE = 5;
+	
+	/**
+	 * État courant de l'étudiant
+	 */
+	private int studentState;
 	
 	/**
 	 * Indique si l'étudiant est précédemment entré dans le Pic.
@@ -26,22 +52,13 @@ public class Student implements Steppable {
 	private boolean hasBeenInside;
 
 	/**
-	 * Indique si l'étudiant est dans une file d'attente pour se faire servir
-	 */
-	private boolean inWaitingLine;
-
-	/**
-	 * Indique si l'étudiant est en train de se faire servir
-	 * //TODO Vérifier que ça a un interet, sinon on peut juste garder inWaitingLine
-	 */
-	private boolean beingServe;
-
-	/**
-	 *
 	 * Quantité de bière dans le verre, se vide au fur et à mesure et se remplit au bar
 	 */
 	private float quantityBeer;
 
+	/**
+	 * Balance de l'étudiant
+	 */
 	private float payutc;
 
 	/**
@@ -50,13 +67,7 @@ public class Student implements Steppable {
 	private int walkCapacity;
 
     public Student() {
-    	inside = false;
-    	hasBeenInside = false;
-    	walkCapacity = Constant.STUDENT_WALK_CAPACITY;
-    	inWaitingLine = false;
-    	beingServe = false;
-		quantityBeer = 0f;
-		payutc = 0;
+    	this(0);
     }
 
 	/**
@@ -64,47 +75,42 @@ public class Student implements Steppable {
 	 * @param money Argent au début de la simulation
 	 */
 	public Student(float money) {
-		inside = false;
 		hasBeenInside = false;
 		walkCapacity = Constant.STUDENT_WALK_CAPACITY;
-		inWaitingLine = false;
-		beingServe = false;
 		quantityBeer = 0f;
 		payutc = money;
+		//Par défaut, l'étudiant est dehors
+		studentState = OUTSIDE;
 	}
-
-
 
     @Override
     public void step(SimState state) {
         Pic pic = (Pic) state;
-        //L'étudiant n'est pas encore dans le Pic et doit y entrer
-
-		if(beingServe || inWaitingLine) {
-			//Si l'étudiant est en train d'être servi , il ne bouge pas
-			return;
-		}
-
-        if(!inside && mustEnterPic()) {
-        	//L'étudiant arrive à l'entrée du Pic, il bouge immédiatement sur une position valide
-        	pic.getModel().setObjectLocation(this, Constant.PIC_ENTER);
-        	pic.incrStudentsInside();
-        	inside = true;
-        	hasBeenInside = true;
-        	justMoveIt(pic);
-        }
-        
-        //L'étudiant est dans le pic et doit en sortir
-        else if(inside && mustLeavePic()) {
-        	pic.getModel().remove(this);
-        	pic.decStudentsInside();
-        	inside = false;
-        }
-        
-        //L'étudiant était déjà dans le pic : il décide de l'action à effectuer
-        else if(inside) {
-        	//L'étudiant doit effectuer un déplacement
-        	if(mustWalk()) justMoveIt(pic);
+        //Décision en fonction de l'état de l'étudiant
+        switch(studentState) {
+	        //L'étudiant attend pour une bière, il n'a rien à faire
+	        case WAITING_FOR_BEER: case WAITING_IN_QUEUE:
+	        	return;
+	        //L'étudiant est en dehors du Pic, il prend une décision
+	        case OUTSIDE:
+	        	//L'étudiant arrive à l'entrée du Pic, il bouge immédiatement sur une position valide
+	        	if(mustEnterPic()) {
+	        		pic.getModel().setObjectLocation(this, Constant.PIC_ENTER);
+	            	pic.incrStudentsInside();
+	            	studentState = NOTHING;
+	            	hasBeenInside = true;
+	            	//Il ne fait rien quand il rentre
+	        	}
+	        	break;
+	        //L'étudiant ne fait rien, il prend une décision
+	        case NOTHING:
+	        	if(mustLeavePic()) {
+	        		pic.getModel().remove(this);
+	            	pic.decStudentsInside();
+	            	studentState = OUTSIDE;
+	        	}
+	        	else if(mustWalk()) justMoveIt(pic);
+	        	break;
         }
     }
     
@@ -132,7 +138,7 @@ public class Student implements Steppable {
      * @throws IllegalStateException si l'étudiant est déjà dans le Pic
      */
     private boolean mustEnterPic() throws IllegalStateException {
-    	if(inside) throw new IllegalStateException("Student is already inside Pic");
+    	if(studentState != OUTSIDE) throw new IllegalStateException("Student is already inside Pic");
     	double prob = Math.random();
     	if(hasBeenInside)
     		return prob < 0.1;
@@ -145,7 +151,7 @@ public class Student implements Steppable {
      * @throws IllegalStateException si l'étudiant n'est pas dans le Pic
      */
     private boolean mustLeavePic() throws IllegalStateException {
-    	if(!inside) throw new IllegalStateException("Student is not inside Pic");
+    	if(studentState == OUTSIDE) throw new IllegalStateException("Student is not inside Pic");
     	return Math.random() < 0.4;    	
     }
     
@@ -155,7 +161,7 @@ public class Student implements Steppable {
      * @throws IllegalStateException si l'étudiant n'est pas dans le Pic
      */
     private boolean mustWalk() throws IllegalStateException {
-    	if(!inside) throw new IllegalStateException("Student is not inside Pic");
+    	if(studentState == OUTSIDE) throw new IllegalStateException("Student is not inside Pic");
     	return Math.random() < 0.5;
     }
 
@@ -173,22 +179,21 @@ public class Student implements Steppable {
 	 */
 	public void enterWaitingFile() {
 		//TODO Utiliser la méthode Agent.WaitingLine.enterLine(this)
-		inWaitingLine = true;
+		studentState = WAITING_IN_QUEUE;
 	}
 
 	/**
 	 * L'étudiant se fait servir
 	 */
 	void serve() {
-		beingServe = true;
-		inWaitingLine = false;
+		studentState = WAITING_FOR_BEER;
 	}
 
 	/**
 	 * Fin du service
 	 */
 	void endServe(double cost) {
-		beingServe = false;
+		studentState = NOTHING;
 		payutc -= cost;
 		quantityBeer = 33f;
 	}
@@ -205,7 +210,7 @@ public class Student implements Steppable {
 	 * Préviens l'étudiant qu'il n'a pas assez d'argent sur son compte
 	 */
 	void notEnoughMoney() {
-		beingServe = false;
+		studentState = POOR;
 		//TODO L'étudiant doit recharger si il veut boire
 		//TODO Certains ne voudront pas et d'autres rechargeront probablement ?
 		//TODO Puis il doit refaire la queue (si il a rechargé)

@@ -1,12 +1,12 @@
 package Agent;
 
+import java.util.Map;
+
 import Model.Pic;
 import Util.Beer;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
-
-import java.util.Map;
 
 /**
  * Agent dynamique représentant un permanencier (serveur)
@@ -23,7 +23,6 @@ public class Bartender implements Steppable {
     private final static int WAITING_BARREL = 3;
     private final static int USING_BARREL = 4;
     private final static int REFILLING_BARREL = 5;
-
 
     /**
      * Waiting line attribué au permanencier
