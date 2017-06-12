@@ -71,7 +71,7 @@ public class PicWithUI extends GUIState {
         gridGUI.setPortrayalForClass(WaitingLine.class, getWaitingLinePortrayal());
         
         display.reset();
-        display.setBackdrop(Color.PINK);
+        display.setBackdrop(Color.WHITE);
         
         display.repaint();
     }

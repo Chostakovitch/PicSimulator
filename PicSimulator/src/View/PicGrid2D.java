@@ -53,14 +53,14 @@ public class PicGrid2D extends SparseGridPortrayal2D {
 			String nbStudents = "Étudiants : " + String.valueOf(pic.getStudentsInside());
 			
 			//Affichage supplémentaire d'une grille pour délimiter les cellules
-			graphics.setColor(Color.GRAY);
+			/* graphics.setColor(Color.GRAY);
 			for(int i = 0; i < Constant.FRAME_WIDTH; i += Constant.FRAME_WIDTH / Constant.PIC_WIDTH) {
 				graphics.drawLine(i, 0, i, Constant.FRAME_HEIGHT);
 			}
 			
 			for(int i = 0; i < Constant.FRAME_HEIGHT; i += Constant.FRAME_HEIGHT / Constant.PIC_HEIGHT) {
 				graphics.drawLine(0, i, Constant.FRAME_WIDTH, i);
-			}
+			} */
 		
 			//Affichage des textes par dessus la grille
 			graphics.setColor(Color.BLACK);

@@ -105,7 +105,7 @@ public class Pic extends SimState {
 		Bag b = pic.getObjectsAtLocation(x, y);
 		if (b != null){
 			for (Object o : b) {
-				if (o.getClass() == Wall.class) return false;
+				if (o instanceof Inanimate) return false;
 			}
 		}
     	return x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight() ;

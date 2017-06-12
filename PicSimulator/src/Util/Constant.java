@@ -54,7 +54,6 @@ public class Constant {
     public static Int2D PIC_BAR_COUNTER[][] = {
             {new Int2D(5, 19), new Int2D(16, 19)},
             {new Int2D(16, 16), new Int2D(16, 18)},
-
     };
 
     /**
@@ -99,11 +98,6 @@ public class Constant {
      * Capacité d'une ecocup (en centilitres)
      */
     public static int CUP_CAPACITY = 33;
-    
-    /**
-     * Nombre de permanenciers dans le pic
-     */
-    public static int BARTENDER_NUMBER = 5;
     
     /**
      * Largeur de la console d'affichage
