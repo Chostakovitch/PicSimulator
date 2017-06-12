@@ -1,50 +1,29 @@
 package Agent;
 
+import java.util.ArrayList;
 import java.util.List;
-
 import Model.Pic;
+import Own.Student.BankAccount;
+import Own.Student.Drink;
+import Own.Student.PayUTCAccount;
+import State.StudentState;
 import Util.Beer;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
 
+import static State.StudentState.*;
+
 /**
  * Agent dynamique représentant un étudiant (pas nécessairement au sein du Pic).
  */
 public class Student implements Steppable {
 	private static final long serialVersionUID = 1L;
-	
-	//Constantes de tous les états possibles de l'étudiant
-	/**
-	 * L'étudiant ne fait rien de spécial, il doit prendre une décision
-	 */
-	private static final int NOTHING = 0;
-	/**
-	 * L'étudiant est dans la file d'attente pour se faire servir une bière
-	 */
-	private static final int WAITING_IN_QUEUE = 1;
-	/**
-	 * L'étudiant est en train d'être servi
-	 */
-	private static final int WAITING_FOR_BEER = 2;
-	/**
-	 * L'étudiant est en train de se déplacer
-	 */
-	private static final int WALKING = 3;
-	/**
-	 * L'étudiant est pauvre et n'a pas assez d'argent pour une bière
-	 */
-	private static final int POOR = 4;
-	/**
-	 * L'étudiant n'est pas dans le Pic
-	 */
-	private static final int OUTSIDE = 5;
-	
 	/**
 	 * État courant de l'étudiant
 	 */
-	private int studentState;
+	private StudentState studentState;
 	
 	/**
 	 * Indique si l'étudiant est précédemment entré dans le Pic.
@@ -52,23 +31,28 @@ public class Student implements Steppable {
 	private boolean hasBeenInside;
 
 	/**
-	 * Quantité de bière dans le verre, se vide au fur et à mesure et se remplit au bar
+	 * Compte PayUTC de l'étudiant
 	 */
-	private float quantityBeer;
+	private PayUTCAccount payUTC;
+	
+	/**
+	 * Compte banquaire de l'étudiant
+	 */
+	private BankAccount bankAccount;
+	
+	/**
+	 * Verre de l'étudiant
+	 */
+	private Drink cup;
 
 	/**
-	 * Balance de l'étudiant
-	 */
-	private float payutc;
-
-	/**
-	 * Distance maximale de déplacementl
+	 * Distance maximale de déplacement par itération
 	 */
 	private int walkCapacity;
 	
 	/**
 	 * Chemin que doit suivre l'étudiant pour rejoindre
-	 * sa destination. Vaut null si l'étudiant n'a pas de destination.
+	 * sa destination. Vide si l'étudiant n'a pas de destination.
 	 */
 	private List<Int2D> path;
 
@@ -83,11 +67,12 @@ public class Student implements Steppable {
 	public Student(float money) {
 		hasBeenInside = false;
 		walkCapacity = Constant.STUDENT_WALK_CAPACITY;
-		quantityBeer = 0f;
-		payutc = money;
+		cup = new Drink();
+		payUTC = new PayUTCAccount();
+		bankAccount = new BankAccount();
 		//Par défaut, l'étudiant est dehors
 		studentState = OUTSIDE;
-		path = null;
+		path = new ArrayList<>();
 	}
 
     @Override
@@ -106,45 +91,92 @@ public class Student implements Steppable {
 	            	pic.incrStudentsInside();
 	            	studentState = NOTHING;
 	            	hasBeenInside = true;
-	            	justMoveIt(pic);
+	            	setNewWalkTarget(pic);
 	        	}
 	        	break;
 	        //L'étudiant ne fait rien, il prend une décision
 	        case NOTHING:
 	        	if(mustLeavePic()) {
+	        		//TODO envoyer l'étudiant vers une sortie avant de le supprimer (état, booléen ?)
 	        		pic.getModel().remove(this);
 	            	pic.decStudentsInside();
 	            	studentState = OUTSIDE;
 	        	}
-	        	else if(mustWalk()) justMoveIt(pic);
+	        	else if(mustWalk()) advancePath(pic);
 	        	break;
 	        //L'étudiant marchait, il continue sa marche
 	        case WALKING:
 	        	advancePath(pic);
 	        	break;
+			default:
+				break;
         }
     }
     
-    /**
-     * Déplace l'étudiant.
-     * - S'il n'était pas en cours de déplacement, détermine une position valide et initie le déplacement.
-     * - S'il était en cours de déplacement, consomme la partie du chemin nécessaire.
+	/**
+	 * Renvoie le type de bière que l'étudiant veut
+	 * @return type de bière
+	 */
+	public Beer getOrder() {
+		//TODO Surement un attribut / une liste des bières qu'un étudiant veut
+    	return Beer.BarbarBok;
+	}
+
+	/**
+	 * L'étudiant rentre dans une file d'attente
+	 */
+	public void enterWaitingFile() {
+		//TODO Utiliser la méthode Agent.WaitingLine.enterLine(this)
+		studentState = WAITING_IN_QUEUE;
+	}
+
+	/**
+	 * L'étudiant se fait servir
+	 */
+	public void serve() {
+		studentState = WAITING_FOR_BEER;
+	}
+
+	/**
+	 * Fin du service
+	 */
+	public void endServe() {
+		studentState = NOTHING;
+	}
+	
+	/**
+	 * Préviens l'étudiant qu'il n'a pas assez d'argent sur son compte
+	 */
+	public void notEnoughMoney() {
+		studentState = POOR;
+		//TODO L'étudiant doit recharger si il veut boire
+		//TODO Certains ne voudront pas et d'autres rechargeront probablement ?
+		//TODO Puis il doit refaire la queue (si il a rechargé)
+	}
+	
+    public PayUTCAccount getPayUTC() {
+		return payUTC;
+	}
+
+	public Drink getCup() {
+		return cup;
+	}
+
+	/**
+     * Génère une position vers laquelle l'étudiant se déplacera ultérieurement et met à jour le chemin.
      * @param pic État de la simulation
      */
-    private void justMoveIt(Pic pic)  {
-    	//Pas de déplacement en cours, on en génère un
-    	if(studentState != WALKING) {	
-    		//Position courante
-        	Int2D currentPos = pic.getModel().getObjectLocation(this);
-        	
-	    	//Sélection d'une position aléatoire
-	    	Int2D selectedPos = pic.getRandomValidLocation();
-	    	
-	    	//Mise à jour du chemin à suivre
-	    	path = pic.getPath(currentPos, selectedPos);
-    	}
+    private void setNewWalkTarget(Pic pic)  {	
+		//Position courante
+    	Int2D currentPos = pic.getModel().getObjectLocation(this);
     	
-    	advancePath(pic);
+    	//Sélection d'une position aléatoire
+    	//TODO gérer les points d'intérêt du pic
+    	Int2D selectedPos = pic.getRandomValidLocation();
+    	
+    	//Mise à jour du chemin à suivre
+    	path = pic.getPath(currentPos, selectedPos);
+    	studentState = WALKING;
     }
     
     /**
@@ -165,7 +197,7 @@ public class Student implements Steppable {
     		finalPos = path.remove(0);
     		--i;
     	}
-    	studentState = WALKING;
+    	
     	pic.getModel().setObjectLocation(this, finalPos);
     	
     	//L'étudiant est arrivé à sa destination
@@ -206,62 +238,10 @@ public class Student implements Steppable {
     }
 
 	/**
-	 * Renvoie le type de bière que l'étudiant veut
-	 * @return type de bière
-	 */
-	Beer getOrder() {
-		//TODO Surement un attribut / une liste des bières qu'un étudiant veut
-    	return Beer.BarbarBok;
-	}
-
-	/**
-	 * L'étudiant rentre dans une file d'attente
-	 */
-	public void enterWaitingFile() {
-		//TODO Utiliser la méthode Agent.WaitingLine.enterLine(this)
-		studentState = WAITING_IN_QUEUE;
-	}
-
-	/**
-	 * L'étudiant se fait servir
-	 */
-	void serve() {
-		studentState = WAITING_FOR_BEER;
-	}
-
-	/**
-	 * Fin du service
-	 */
-	void endServe(double cost) {
-		studentState = NOTHING;
-		payutc -= cost;
-		quantityBeer = 33f;
-	}
-
-	/**
-	 * Retourne le solde payutc actuel de l'étudiant
-	 * @return solde payutc
-	 */
-	double getPayutc() {
-		return payutc;
-	}
-
-	/**
-	 * Préviens l'étudiant qu'il n'a pas assez d'argent sur son compte
-	 */
-	void notEnoughMoney() {
-		studentState = POOR;
-		//TODO L'étudiant doit recharger si il veut boire
-		//TODO Certains ne voudront pas et d'autres rechargeront probablement ?
-		//TODO Puis il doit refaire la queue (si il a rechargé)
-	}
-
-	/**
 	 * Permet à l'étudiant de recharger son compte
-	 * //TODO Probablement pas instantannée ?
 	 * @param money quantité ajoutée au compte
 	 */
 	private void rechargePayutc(float money) {
-		payutc += money;
+		//TODO gérer la recharge
 	}
 }

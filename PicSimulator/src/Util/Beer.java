@@ -21,8 +21,6 @@ public enum Beer {
     private String name = "";
     private double price = 0.0;
 
-
-
     //Constructeur
     Beer(String name, double price){
         this.name = name;

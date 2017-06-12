@@ -3,27 +3,19 @@ package Agent;
 import java.util.Map;
 
 import Model.Pic;
+import State.BartenderState;
 import Util.Beer;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
+
+import static State.BartenderState.*;
 
 /**
  * Agent dynamique représentant un permanencier (serveur)
  */
 public class Bartender implements Steppable {
     private static final long serialVersionUID = 1L;
-
-    /**
-     * Constante des différents mouvements possible du bartender
-     */
-    private final static int NOTHING = 0;
-    private final static int WAITING_CHECKOUT = 1;
-    private final static int USING_CHECKOUT = 2;
-    private final static int WAITING_BARREL = 3;
-    private final static int USING_BARREL = 4;
-    private final static int REFILLING_BARREL = 5;
-
     /**
      * Waiting line attribué au permanencier
      */
@@ -92,7 +84,7 @@ public class Bartender implements Steppable {
     /**
      * Action actuelle du bartender
      */
-    private int action;
+    private BartenderState action;
 
 
     public Bartender(WaitingLine wl, int speedServe, int speedRefill, int speedCheckoutCounter, Int2D pos) {
@@ -147,16 +139,27 @@ public class Bartender implements Steppable {
                 break;
 
             case USING_BARREL:
-                if (timeServing == 0) { //a fini de servir
-                    barrelUsed.endUseBarrel();
+            	//L'étudiant est servi
+                if (timeServing == 0) {
+                    //Notification de fin d'utilisation du fût
+                	barrelUsed.endUseBarrel();
                     barrelUsed = null;
+                    
+                    //Le permanencier revient à sa position initiale
+                    //TODO gérer le déplacement avec le plus court chemin comme dans étudiant ; corollaire : classe gérant les entités se déplaçant et mutualisant les méthodes ?
                     pic.getModel().setObjectLocation(this, initialPosition);
-                    studentToServe.endServe(beerToServe.getPrice());
+                    
+                    //Remplissage effectif de la coupe et prélèvement
+                    studentToServe.getCup().fillCup(beerToServe);
+                    studentToServe.getPayUTC().pay(beerToServe.getPrice());
+                    studentToServe.endServe();
                     studentToServe = null;
                     beerToServe = null;
                     timeServing = speedToServe;
                     action = NOTHING;
-                } else //est en train de servir
+                }
+                //Toujours en train de servir
+                else 
                     timeServing--;
                 break;
 
@@ -179,7 +182,8 @@ public class Bartender implements Steppable {
         studentToServe = waitingLine.getStudent();
         studentToServe.serve();
         beerToServe = studentToServe.getOrder();
-        if (beerToServe.getPrice() > studentToServe.getPayutc()) {
+        //On vérifie que l'étudiant a assez d'argent
+        if (studentToServe.getPayUTC().hasEnough(beerToServe.getPrice())) {
             studentToServe.notEnoughMoney();
             studentToServe = null;
             beerToServe = null;
