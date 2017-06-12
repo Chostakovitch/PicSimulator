@@ -158,28 +158,24 @@ public class Pic extends SimState {
 		return optionalBarrel.orElse(null);
 	}
     
+    
     /**
-     * Calcule un ensemble de position valides autour d'une position initiale pour un étudiant
-     * sous forme d'un carré plein paramétré par un "rayon" maximal (une diagonale valant une unité)
-     * Une position est valide si elle est dans la grille et n'est pas occupée par un objet
-     * inanimé ou par un permanencier.
-     * @param pos Position centrale
-     * @param radius "Rayon" du carré
-     * @return Liste de coordonnées valides
+     * Calcule une position aléatoire valide sur la grille. En interne, génère des positions aléatoires
+     * jusqu'à en trouver une valide. Bien qu'algorithmiquement peu performant, statistiquement plus efficace
+     * que de tirer aléatoirement dans l'ensemble des positions valides (nb_valid >> nb_invalid)
+     * @return
      */
-    public List<Int2D> getSquareValidLocations(Int2D pos, int radius) {
-    	List<Int2D> possiblePos = new ArrayList<>();
-    	int x = pos.x;
-    	int y = pos.y;
-    	for(int i = x - radius; i <= x + radius; ++i) {
-    		for(int j = y - radius; j <= y + radius; ++j) {
-    			//On ne prend pas en compte la position centrale
-    			if(!(i == x && j == y) && isLocationValid(i, j) && !isLocationFull(i, j)) {
-    				possiblePos.add(new Int2D(i, j));
-    			}
-    		}
-    	}
-    	return possiblePos;
+    public Int2D getRandomValidLocation() {
+    	Int2D pos;
+    	int x;
+    	int y;
+    	do {
+    		x = random.nextInt(pic.getHeight());
+    		y = random.nextInt(pic.getWidth());
+    		pos = new Int2D(x, y);
+    		
+    	} while(!isLocationValid(x, y));
+    	return pos;
     }
     
     /**

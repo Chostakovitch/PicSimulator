@@ -65,6 +65,12 @@ public class Student implements Steppable {
 	 * Distance maximale de déplacementl
 	 */
 	private int walkCapacity;
+	
+	/**
+	 * Chemin que doit suivre l'étudiant pour rejoindre
+	 * sa destination. Vaut null si l'étudiant n'a pas de destination.
+	 */
+	private List<Int2D> path;
 
     public Student() {
     	this(0);
@@ -81,6 +87,7 @@ public class Student implements Steppable {
 		payutc = money;
 		//Par défaut, l'étudiant est dehors
 		studentState = OUTSIDE;
+		path = null;
 	}
 
     @Override
@@ -99,7 +106,7 @@ public class Student implements Steppable {
 	            	pic.incrStudentsInside();
 	            	studentState = NOTHING;
 	            	hasBeenInside = true;
-	            	//Il ne fait rien quand il rentre
+	            	justMoveIt(pic);
 	        	}
 	        	break;
 	        //L'étudiant ne fait rien, il prend une décision
@@ -115,21 +122,36 @@ public class Student implements Steppable {
     }
     
     /**
-     * Déplace l'étudiant courant à un point aléatoire
+     * Déplace l'étudiant.
+     * - S'il n'était pas en cours de déplacement, détermine une position valide et initie le déplacement.
+     * - S'il était en cours de déplacement, consomme la partie du chemin nécessaire.
+     * - Si le déplacement est fini, positionne l'état de l'étudiant à NOTHING.
      * @param pic État de la simulation
      */
     private void justMoveIt(Pic pic)  {
     	//Position courante
     	Int2D currentPos = pic.getModel().getObjectLocation(this);
     	
-    	//Positions possibles
-    	List<Int2D> possiblePos = pic.getSquareValidLocations(currentPos, walkCapacity);
-    			
-    	//Sélection d'une position aléatoire
-    	Int2D selectedPos = possiblePos.get(pic.random.nextInt(possiblePos.size()));
+    	//Pas de déplacement en cours, on en génère un
+    	if(studentState != WALKING) {		
+	    	//Sélection d'une position aléatoire
+	    	Int2D selectedPos = pic.getRandomValidLocation();
+	    	
+	    	//Mise à jour du chemin à suivre
+	    	path = pic.getPath(currentPos, selectedPos);
+    	}
     	
-    	//Mise à jour de la position
-    	pic.getModel().setObjectLocation(this, selectedPos);
+    	int i = walkCapacity;
+    	Int2D finalPos = currentPos;
+    	
+    	//Déplacement et mise à jour
+    	while(path.size() > 0 && i > 0) {
+    		finalPos = path.remove(0);
+    	}
+    	pic.getModel().setObjectLocation(this, finalPos);
+    	
+    	//L'étudiant est arrivé à sa destination
+    	if(path.isEmpty()) studentState = NOTHING;
     }
     
     /**
