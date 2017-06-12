@@ -15,6 +15,10 @@ public class PicSimulatorMain {
         Pic model = new Pic(System.currentTimeMillis());
         PicWithUI gui = new PicWithUI(model);
         Console console = new Console(gui);
+        
+        //Contrôle du délai, à ajuster pour vos besoins
+        console.setPlaySleep(100);
+        
         console.setVisible(true);
     }
 }

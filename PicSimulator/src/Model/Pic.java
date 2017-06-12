@@ -124,8 +124,11 @@ public class Pic extends SimState {
      * @return true si la position est dans les délimitations virtuelles de la grille
      */
     public boolean isLocationValid(int x, int y) {
-    	if(x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight()) return false;
+    	//En dehors de la grille
+    	if(!(x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight())) return false;
+    	//Case pleine
     	if(isLocationFull(x, y)) return false;
+    	//Vérification des objets inanimés
 		Bag b = pic.getObjectsAtLocation(x, y);
 		if (b != null) {
 			for (Object o : b) {

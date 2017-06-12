@@ -134,12 +134,12 @@ public class Constant {
     /**
      * Temps, en secondes, concerné par une itération de la simulation
      */
-    public static int TIMESTEP = 5;
+    public static int TIMESTEP = 1;
     
     /**
      * Nombre d'étudiants participant à la simulation (!= nombre d'étudiants dans le pic)
      */
-    public static int STUDENT_NUMBER = 100;
+    public static int STUDENT_NUMBER = 50;
     
     /**
      * Position de l'entrée du Pic
@@ -149,5 +149,5 @@ public class Constant {
     /**
      * Distance à laquelle un étudiant peut se déplacer (au maximum) pendant une itération
      */
-    public static int STUDENT_WALK_CAPACITY = 3;
+    public static int STUDENT_WALK_CAPACITY = TIMESTEP;
 }

@@ -118,6 +118,10 @@ public class Student implements Steppable {
 	        	}
 	        	else if(mustWalk()) justMoveIt(pic);
 	        	break;
+	        //L'étudiant marchait, il continue sa marche
+	        case WALKING:
+	        	advancePath(pic);
+	        	break;
         }
     }
     
@@ -125,15 +129,14 @@ public class Student implements Steppable {
      * Déplace l'étudiant.
      * - S'il n'était pas en cours de déplacement, détermine une position valide et initie le déplacement.
      * - S'il était en cours de déplacement, consomme la partie du chemin nécessaire.
-     * - Si le déplacement est fini, positionne l'état de l'étudiant à NOTHING.
      * @param pic État de la simulation
      */
     private void justMoveIt(Pic pic)  {
-    	//Position courante
-    	Int2D currentPos = pic.getModel().getObjectLocation(this);
-    	
     	//Pas de déplacement en cours, on en génère un
-    	if(studentState != WALKING) {		
+    	if(studentState != WALKING) {	
+    		//Position courante
+        	Int2D currentPos = pic.getModel().getObjectLocation(this);
+        	
 	    	//Sélection d'une position aléatoire
 	    	Int2D selectedPos = pic.getRandomValidLocation();
 	    	
@@ -141,13 +144,28 @@ public class Student implements Steppable {
 	    	path = pic.getPath(currentPos, selectedPos);
     	}
     	
+    	advancePath(pic);
+    }
+    
+    /**
+     * Avance sur le chemin pré-déterminé par l'étudiant
+     * et assigne l'état de l'étudiant en fonction de l'état du chemin. 
+     * Si le déplacement est fini, positionne l'état de l'étudiant à NOTHING.
+     * @param pic État de la simulation
+     */
+    private void advancePath(Pic pic) {
+    	//Position courante
+    	Int2D currentPos = pic.getModel().getObjectLocation(this);
+    	
     	int i = walkCapacity;
     	Int2D finalPos = currentPos;
     	
     	//Déplacement et mise à jour
     	while(path.size() > 0 && i > 0) {
     		finalPos = path.remove(0);
+    		--i;
     	}
+    	studentState = WALKING;
     	pic.getModel().setObjectLocation(this, finalPos);
     	
     	//L'étudiant est arrivé à sa destination
@@ -174,7 +192,7 @@ public class Student implements Steppable {
      */
     private boolean mustLeavePic() throws IllegalStateException {
     	if(studentState == OUTSIDE) throw new IllegalStateException("Student is not inside Pic");
-    	return Math.random() < 0.4;    	
+    	return Math.random() < 0.2;    	
     }
     
     /**
