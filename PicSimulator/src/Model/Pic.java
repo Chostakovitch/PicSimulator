@@ -84,8 +84,10 @@ public class Pic extends SimState {
     @Override
 	public void start() {
         System.out.println("GOD DAMN SIMULATION STARTED");
-        //Remise à zéro du temps
+        //Remise à zéro des variables du Pic
     	time = timeslot.getStart();
+    	studentsInside = 0;
+    	cc = new CheckoutCounter();
         super.start();
         pic.clear();
         
