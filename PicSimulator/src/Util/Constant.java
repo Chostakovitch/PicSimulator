@@ -66,10 +66,21 @@ public class Constant {
      */
     public static Int2D BARREL_POSITIONS[] = {
         new Int2D(6, 16),
+        new Int2D(6, 16),
+        new Int2D(7, 16),
+        new Int2D(7, 16),
         new Int2D(8, 16),
+        new Int2D(8, 16),
+        new Int2D(9, 16),
+        new Int2D(9, 16),
+        new Int2D(10, 16),
         new Int2D(10, 16),
         new Int2D(12, 16),
-        new Int2D(14, 16)
+        new Int2D(12, 16),
+        new Int2D(13, 16),
+        new Int2D(13, 16),
+        new Int2D(14, 16),
+        new Int2D(14, 16),
     };
 
     /**
