@@ -87,6 +87,12 @@ public class StudentPortrayal extends OvalPortrayal2D {
 	        //Dessin effectif
 	        graphics.setPaint(paint);
             graphics.fillOval(x, y, (int)effectiveWidth, (int)effectiveWidth);
+            //L'étudiant a une bière
+            if(!student.getCup().isEmpty()) {
+            	int secondaryWidth = (int)(effectiveWidth / 3);
+            	graphics.setColor(Color.orange);
+            	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
+            }            
 		}
 	}
 }

@@ -22,7 +22,7 @@ public abstract class Account {
 	 * @param amount Montant à décompter
 	 */
 	public void pay(double amount) {
-		if(hasEnough(amount)) throw new IllegalArgumentException("Account does not have enough balance!");
+		if(!hasEnough(amount)) throw new IllegalArgumentException("Account does not have enough balance!");
 		balance -= amount;
 	}
 	
@@ -49,5 +49,9 @@ public abstract class Account {
 		if(!other.hasEnough(amount)) throw new IllegalStateException("Account does not have enough balance!");
 		other.pay(amount);
 		balance += amount;
+	}
+
+	public double getBalance() {
+		return balance;
 	}
 }

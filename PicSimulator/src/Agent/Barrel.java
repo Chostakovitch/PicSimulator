@@ -1,9 +1,9 @@
 package Agent;
 
+import java.util.ArrayList;
+
 import Util.Beer;
 import Util.Constant;
-
-import java.util.ArrayList;
 
 /**
  * Agent statique représentant un fût de bière.
@@ -68,7 +68,7 @@ public class Barrel implements Inanimate {
             throw new IllegalStateException("Ce fût est déjà utilisé");
         else {
             usedBy = b;
-            if(waitingList.get(0) == b)
+            if(!waitingList.isEmpty() && waitingList.get(0) == b)
                 waitingList.remove(b);
         }
     }

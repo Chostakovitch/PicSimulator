@@ -127,6 +127,17 @@ public class Student implements Steppable {
 	        case WALKING: case WALKING_TO_WAITING_LINE:
 	        	advancePath(pic);
 	        	break;
+	        //L'étudiant est pauvre. Mince alors. Il doit décider s'il recharge et continue de manger des pâtes ou s'il reste à l'eau.
+	        case POOR:
+	        	//TODO discuter de cette constante arbitraire
+	        	if(mustRecharge(10)) {
+	        		rechargePayutc(10);
+	        		chooseWaitingLine(pic);
+	        	}
+	        	else {
+	        		studentState = NOTHING;
+	        	}
+	        	break;
 			default:
 				break;
         }
@@ -160,9 +171,6 @@ public class Student implements Steppable {
 	 */
 	public void notEnoughMoney() {
 		studentState = POOR;
-		//TODO L'étudiant doit recharger si il veut boire
-		//TODO Certains ne voudront pas et d'autres rechargeront probablement ?
-		//TODO Puis il doit refaire la queue (si il a rechargé)
 	}
 	
     public PayUTCAccount getPayUTC() {
@@ -240,7 +248,7 @@ public class Student implements Steppable {
      */
     private boolean mustLeavePic() throws IllegalStateException {
     	if(studentState == OUTSIDE) throw new IllegalStateException("Student is not inside Pic");
-    	return Math.random() < 0.2;    	
+    	return cup.isEmpty() && Math.random() < 0.2;    	
     }
     
     /**
@@ -250,6 +258,15 @@ public class Student implements Steppable {
     private boolean mustGetBeer() {
     	if(!cup.isEmpty()) return false;
     	return true;
+    }
+    
+    /**
+     * Indique si l'étudiant doit recharger sa carte PayUTC
+     * @return true si l'étudiant doit recharger
+     */
+    private boolean mustRecharge(double amount) {
+    	//TODO implémenter les conditions
+    	return bankAccount.hasEnough(amount);
     }
     
     /**
@@ -267,7 +284,6 @@ public class Student implements Steppable {
 	 * @param money quantité ajoutée au compte
 	 */
 	private void rechargePayutc(double money) {
-		//TODO gérer l'état postérieur (POOR, WAITNG_IN_QUEUE, NOTHING) et par extension l'exception
 		payUTC.transfer(bankAccount, money);
 	}
 	

@@ -108,10 +108,9 @@ public class Bartender implements Steppable {
     @Override
     public void step(SimState state) {
         Pic pic = (Pic) state;
-
         switch (action) {
             case NOTHING:
-                if (!waitingLine.isEmpty()) {
+                if(!waitingLine.isEmpty()) {
                     takeOrder(pic);
                 }
                 break;
@@ -179,6 +178,7 @@ public class Bartender implements Steppable {
      * @param pic pic
      */
     private void takeOrder(Pic pic) {
+    	if(!pic.isBeerTime()) throw new IllegalStateException("Le Pic ne sert pas encore de bière!");
         currentOrder = waitingLine.getNextOrder();
         Student student = currentOrder.getStudent();
         Beer beer = currentOrder.getBeerType();

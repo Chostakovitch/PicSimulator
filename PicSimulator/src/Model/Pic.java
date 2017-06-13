@@ -327,6 +327,7 @@ public class Pic extends SimState {
 			Int2D posWait = Constant.WAITING_LINES_POSITIONS[i];
 			WaitingLine w = new WaitingLine();
 			Bartender b = new Bartender(w, 10, 10, 10, posBart);
+			schedule.scheduleRepeating(b);
 			pic.setObjectLocation(b, posBart.getX(), posBart.getY());
 			pic.setObjectLocation(w, posWait.getX(), posWait.getY());
 		}

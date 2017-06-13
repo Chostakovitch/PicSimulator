@@ -131,7 +131,7 @@ public class Constant {
     /**
      * Heure d'ouverture du Pic
      */
-    public static LocalTime PIC_BEGIN = LocalTime.of(10, 0);
+    public static LocalTime PIC_BEGIN = LocalTime.of(18, 30);
     
     /**
      * Heure de fermeture du Pic

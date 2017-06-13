@@ -31,7 +31,7 @@ public class Drink {
 	}
 
 	public void fillCup(Beer beer) {
-		capacity = Constant.CUP_CAPACITY;
+		quantity = Constant.CUP_CAPACITY;
 		beerType = beer;
 	}
 	

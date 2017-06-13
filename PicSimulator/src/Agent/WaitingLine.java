@@ -17,7 +17,6 @@ public class WaitingLine implements Inanimate {
 
     public void enterLine(Order order) {
         orderLine.add(order);
-        System.out.println("oui");
     }
 
     public Order getNextOrder() {

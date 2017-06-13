@@ -59,7 +59,7 @@ public class CheckoutCounter implements Inanimate {
             throw new IllegalStateException("Cette caisse est déjà utilisé");
         else {
             usedBy = b;
-            if(waitingList.get(0) == b)
+            if(!waitingList.isEmpty() && waitingList.get(0) == b)
                 waitingList.remove(b);
         }
     }
