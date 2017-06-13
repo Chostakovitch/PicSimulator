@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.threeten.extra.Interval;
 
@@ -117,7 +118,7 @@ public class Pic extends SimState {
 	/**
      * Indique si une position est "valide" pour un déplacement :
      *  - Si la position est dans les délimitations virtuelles de la grille (qui n'est pas bornée) ;
-     *  - Si la position n'est pas celle d'un objet inanimé
+     *  - Si la position n'est pas celle d'un objet inanimé, sauf file d'attente
      *  - Si la position n'est pas pleine
      * @param x Coordonnée en abscisses
      * @param y Coordonnéé en ordonnées
@@ -132,7 +133,7 @@ public class Pic extends SimState {
 		Bag b = pic.getObjectsAtLocation(x, y);
 		if (b != null) {
 			for (Object o : b) {
-				if (o instanceof Inanimate) return false;
+				if (o instanceof Inanimate && !(o instanceof WaitingLine)) return false;
 			}
 		}
     	return true;
@@ -208,6 +209,14 @@ public class Pic extends SimState {
     	
     	return pathPos;
     }
+
+    public CheckoutCounter getCheckoutCounter() {
+    	return cc;
+	}
+
+	public Int2D getCheckoutCounterLocation() {
+    	return pic.getObjectLocation(cc);
+	}
     
     public SparseGrid2D getModel() {
         return pic;
@@ -231,6 +240,20 @@ public class Pic extends SimState {
     
     public int getStudentsInside() {
     	return studentsInside;
+    }
+    
+    /**
+     * Détermine les entités d'un type T à une position donnée
+     * @param pos Position où chercher
+     * @param type Type à chercher
+     * @return Liste de T
+     */
+    public <T> List<T> getEntitiesAtLocation(Int2D pos, Class<T> type) {
+    	return Arrays
+			.stream(pic.getObjectsAtLocation(pos).objs)
+			.filter(e -> type.isInstance(e))
+			.map(type::cast)
+			.collect(Collectors.toList());
     }
     
     /**
@@ -300,12 +323,12 @@ public class Pic extends SimState {
 	 */
 	private void addAgentsBartenderAndWaitingLine() {
 		for(int i = 0; i < Constant.BARTENDER_POSITIONS.length; i++) {
-			Int2D pos = Constant.BARTENDER_POSITIONS[i];
+			Int2D posBart = Constant.BARTENDER_POSITIONS[i];
+			Int2D posWait = Constant.WAITING_LINES_POSITIONS[i];
 			WaitingLine w = new WaitingLine();
-			Bartender b = new Bartender(w, 10, 10, 10, pos);
-			pic.setObjectLocation(b, pos.getX(), pos.getY());
-			pic.setObjectLocation(w, pos.getX(), pos.getY()+2);
-
+			Bartender b = new Bartender(w, 10, 10, 10, posBart);
+			pic.setObjectLocation(b, posBart.getX(), posBart.getY());
+			pic.setObjectLocation(w, posWait.getX(), posWait.getY());
 		}
 	}
     
@@ -342,12 +365,4 @@ public class Pic extends SimState {
     	Instant instant = zonedTodayWithTime.toInstant();
     	return instant;
     }
-
-    public CheckoutCounter getCheckoutCounter() {
-    	return cc;
-	}
-
-	public Int2D getCheckoutCounterLocation() {
-    	return pic.getObjectLocation(cc);
-	}
 }

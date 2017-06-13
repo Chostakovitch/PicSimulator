@@ -65,28 +65,45 @@ public class Constant {
      * Position des fûts de bière
      */
     public static Int2D BARREL_POSITIONS[] = {
-            new Int2D(6, 16),
-            new Int2D(8, 16),
-            new Int2D(10, 16),
-            new Int2D(12, 16),
-            new Int2D(14, 16),
+        new Int2D(6, 16),
+        new Int2D(8, 16),
+        new Int2D(10, 16),
+        new Int2D(12, 16),
+        new Int2D(14, 16)
     };
 
     /**
-     * Position des files d'attentes
+     * Position des permanenciers
      */
     public static Int2D BARTENDER_POSITIONS[] = {
-            new Int2D(5, 18),
-            new Int2D(6, 18),
-            new Int2D(7, 18),
-            new Int2D(8, 18),
-            new Int2D(9, 18),
-            new Int2D(10, 18),
-            new Int2D(11, 18),
-            new Int2D(12, 18),
-            new Int2D(13, 18),
-            new Int2D(14, 18),
-            new Int2D(15, 18),
+        new Int2D(5, 18),
+        new Int2D(6, 18),
+        new Int2D(7, 18),
+        new Int2D(8, 18),
+        new Int2D(9, 18),
+        new Int2D(10, 18),
+        new Int2D(11, 18),
+        new Int2D(12, 18),
+        new Int2D(13, 18),
+        new Int2D(14, 18),
+        new Int2D(15, 18)
+    };
+    
+    /**
+     * Positions des files d'attente
+     */
+    public static Int2D WAITING_LINES_POSITIONS[] = {
+        new Int2D(5, 20),
+        new Int2D(6, 20),
+        new Int2D(7, 20),
+        new Int2D(8, 20),
+        new Int2D(9, 20),
+        new Int2D(10, 20),
+        new Int2D(11, 20),
+        new Int2D(12, 20),
+        new Int2D(13, 20),
+        new Int2D(14, 20),
+        new Int2D(15, 20)
     };
 
     public static Int2D PIC_CHECKOUT_COUNTER_POSITION = new Int2D(15, 16);
@@ -139,7 +156,7 @@ public class Constant {
     /**
      * Nombre d'étudiants participant à la simulation (!= nombre d'étudiants dans le pic)
      */
-    public static int STUDENT_NUMBER = 50;
+    public static int STUDENT_NUMBER = 1;
     
     /**
      * Position de l'entrée du Pic

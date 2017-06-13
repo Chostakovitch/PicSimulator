@@ -1,8 +1,13 @@
 package Agent;
 
-import java.util.Map;
+import static State.BartenderState.NOTHING;
+import static State.BartenderState.REFILLING_BARREL;
+import static State.BartenderState.USING_BARREL;
+import static State.BartenderState.USING_CHECKOUT;
+import static State.BartenderState.WAITING_BARREL;
+import static State.BartenderState.WAITING_CHECKOUT;
 
-import com.sun.javafx.cursor.CursorType;
+import java.util.Map;
 
 import Model.Pic;
 import Own.Bartender.Order;
@@ -11,8 +16,6 @@ import Util.Beer;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
-
-import static State.BartenderState.*;
 
 /**
  * Agent dynamique représentant un permanencier (serveur)

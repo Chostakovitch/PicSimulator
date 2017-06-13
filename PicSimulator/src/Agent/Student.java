@@ -1,8 +1,19 @@
 package Agent;
 
+import static State.StudentState.NOTHING;
+import static State.StudentState.OUTSIDE;
+import static State.StudentState.POOR;
+import static State.StudentState.WAITING_FOR_BEER;
+import static State.StudentState.WAITING_IN_QUEUE;
+import static State.StudentState.WALKING;
+import static State.StudentState.WALKING_TO_WAITING_LINE;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
 import Model.Pic;
+import Own.Bartender.Order;
 import Own.Person.BankAccount;
 import Own.Person.PayUTCAccount;
 import Own.Student.Drink;
@@ -12,8 +23,6 @@ import Util.Constant;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
-
-import static State.StudentState.*;
 
 /**
  * Agent dynamique représentant un étudiant (pas nécessairement au sein du Pic).
@@ -78,7 +87,6 @@ public class Student implements Steppable {
 		//Par défaut, l'étudiant est dehors
 		studentState = OUTSIDE;
 		path = new ArrayList<>();
-		
 		//TODO trouver une valeur par défaut
 		moneyCapacity = 100;
 		bankAccount = new BankAccount(moneyCapacity);
@@ -100,7 +108,6 @@ public class Student implements Steppable {
 	            	pic.incrStudentsInside();
 	            	studentState = NOTHING;
 	            	hasBeenInside = true;
-	            	setNewWalkTarget(pic);
 	        	}
 	        	break;
 	        //L'étudiant ne fait rien, il prend une décision
@@ -111,10 +118,13 @@ public class Student implements Steppable {
 	            	pic.decStudentsInside();
 	            	studentState = OUTSIDE;
 	        	}
-	        	else if(mustWalk()) advancePath(pic);
+	        	//Choisit une file d'attente et initie un déplacement
+	        	else if(mustGetBeer()) chooseWaitingLine(pic);
+	        	//Choisit une destination aléatoire
+	        	else if(mustWalk()) setNewWalkTarget(pic, pic.getRandomValidLocation());
 	        	break;
 	        //L'étudiant marchait, il continue sa marche
-	        case WALKING:
+	        case WALKING: case WALKING_TO_WAITING_LINE:
 	        	advancePath(pic);
 	        	break;
 			default:
@@ -129,14 +139,6 @@ public class Student implements Steppable {
 	public Beer getOrder() {
 		//TODO Surement un attribut / une liste des bières qu'un étudiant veut
     	return Beer.BarbarBok;
-	}
-
-	/**
-	 * L'étudiant rentre dans une file d'attente
-	 */
-	public void enterWaitingFile() {
-		//TODO Utiliser la méthode Agent.WaitingLine.enterLine(this)
-		studentState = WAITING_IN_QUEUE;
 	}
 
 	/**
@@ -172,19 +174,15 @@ public class Student implements Steppable {
 	}
 
 	/**
-     * Génère une position vers laquelle l'étudiant se déplacera ultérieurement et met à jour le chemin.
+     * Génère un chemin pour le déplacement de l'étudiant.
      * @param pic État de la simulation
+     * @param finalPos Destination de l'étudiant.
      */
-    private void setNewWalkTarget(Pic pic)  {	
+    private void setNewWalkTarget(Pic pic, Int2D finalPos)  {
 		//Position courante
     	Int2D currentPos = pic.getModel().getObjectLocation(this);
-    	
-    	//Sélection d'une position aléatoire
-    	//TODO gérer les points d'intérêt du pic
-    	Int2D selectedPos = pic.getRandomValidLocation();
-    	
     	//Mise à jour du chemin à suivre
-    	path = pic.getPath(currentPos, selectedPos);
+    	path = pic.getPath(currentPos, finalPos);
     	studentState = WALKING;
     }
     
@@ -210,7 +208,16 @@ public class Student implements Steppable {
     	pic.getModel().setObjectLocation(this, finalPos);
     	
     	//L'étudiant est arrivé à sa destination
-    	if(path.isEmpty()) studentState = NOTHING;
+    	if(path.isEmpty()) {
+    		//S'il allait vers une file d'attente, il y rentre
+    		if(studentState == WALKING_TO_WAITING_LINE) {
+    			enterWaitingFile(pic);
+    		}
+    		//Sinon, il retourne à son état initial
+    		else {
+    			studentState = NOTHING;
+    		}
+    	}
     }
     
     /**
@@ -237,6 +244,15 @@ public class Student implements Steppable {
     }
     
     /**
+     * Indique si l'étudiant doit aller chercher une bière
+     * @return true si l'étudiant doit aller chercher une bière
+     */
+    private boolean mustGetBeer() {
+    	if(!cup.isEmpty()) return false;
+    	return true;
+    }
+    
+    /**
      * Indique si l'étudiant doit effectuer un déplacement
      * @return Booléean
      * @throws IllegalStateException si l'étudiant n'est pas dans le Pic
@@ -253,5 +269,34 @@ public class Student implements Steppable {
 	private void rechargePayutc(double money) {
 		//TODO gérer l'état postérieur (POOR, WAITNG_IN_QUEUE, NOTHING) et par extension l'exception
 		payUTC.transfer(bankAccount, money);
+	}
+	
+	/**
+	 * Choisit une file d'attente sur laquelle s'insérer. La file choisie est 
+	 * celle contenant le moins d'étudiant au moment d'y entrer. Initie le déplacement.
+	 * @param pic Modèle de la simulation.
+	 */
+	private void chooseWaitingLine(Pic pic) {		
+		WaitingLine line = Arrays
+			.stream(Constant.WAITING_LINES_POSITIONS)
+			.map(pos -> pic.getEntitiesAtLocation(pos, WaitingLine.class))
+			.flatMap(List::stream)
+			.min((l, r) -> Integer.compare(l.getStudentNumber(), r.getStudentNumber()))
+			.get();
+		setNewWalkTarget(pic, pic.getModel().getObjectLocation(line));
+		studentState = WALKING_TO_WAITING_LINE;
+	}
+
+	/**
+	 * L'étudiant rentre dans une file d'attente sur sa position actuelle
+	 */
+	private void enterWaitingFile(Pic pic) throws IllegalStateException {
+		//On récupère la file d'attente
+		List<WaitingLine> lines = pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), WaitingLine.class);
+		if(lines.isEmpty()) throw new IllegalStateException("Aucune file d'attente sur la position courante!");
+		
+		//Si cette file existe, on entre dedans et on modifie l'état de l'étudiant
+		lines.get(0).enterLine(new Order(this, getOrder()));
+		studentState = WAITING_IN_QUEUE;
 	}
 }

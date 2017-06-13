@@ -3,13 +3,13 @@ package View;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
 
 import Agent.Student;
 import Model.Pic;
 import sim.engine.SimState;
 import sim.portrayal.DrawInfo2D;
 import sim.portrayal.simple.OvalPortrayal2D;
-import sim.util.Bag;
 
 /**
  * Cette classe vise à améliorer la repréentation graphique des étudiants dans 
@@ -47,12 +47,12 @@ public class StudentPortrayal extends OvalPortrayal2D {
 			Student student = (Student) object;
 			int index = -1;
 			
-			//Ensemble d'objets sur la case où est l'étudiant courant
-			Bag objs = pic.getModel().getObjectsAtLocation(pic.getModel().getObjectLocation(student));
+			//Étudiants sur la case courante
+			List<Student> students = pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(student), Student.class);
 			
 			//Récupération de l'index de l'étudiant courant dans ces objets
-			for(int i = 0; i < objs.size(); ++i) {
-				if(student == objs.get(i)) index = i;
+			for(int i = 0; i < students.size(); ++i) {
+				if(student == students.get(i)) index = i;
 			}
 			
 			Rectangle2D.Double draw = info.draw;
@@ -62,7 +62,7 @@ public class StudentPortrayal extends OvalPortrayal2D {
 			 * change évidemment en fonction du nombre d'étudiants sur la cellule.
 			 * Il est calculé pour être le plus petit possible en respectant la contrainte 
 			 * de dessiner des cercles (et non des ovales) de même taille, équitablement répartis. */
-			int gridRepartitionFactor = (int) Math.ceil(Math.sqrt(objs.size()));
+			int gridRepartitionFactor = (int) Math.ceil(Math.sqrt(students.size()));
 			
 			//Largeur de l'élément s'il était seul
 			double theoricalWidth = draw.width;
