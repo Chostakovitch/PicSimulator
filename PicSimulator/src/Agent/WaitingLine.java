@@ -3,21 +3,23 @@ package Agent;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
+import Own.Bartender.Order;
+
 public class WaitingLine implements Inanimate {
     /**
-     * Liste des étudiant dans la file
+     * Représente la file des commandes (i.e. étudiant et demande)
      */
-    private ArrayList<Student> studentLine;
+    private ArrayList<Order> studentLine;
 
     public WaitingLine() {
         studentLine = new ArrayList<>();
     }
 
-    public void enterLine(Student st) {
-        studentLine.add(st);
+    public void enterLine(Order order) {
+        studentLine.add(order);
     }
 
-    public Student getStudent() {
+    public Order getNextOrder() {
         int nbStudent = studentLine.size() < 3? studentLine.size() : 3;
         int randomNum = ThreadLocalRandom.current().nextInt(0, nbStudent);
         return studentLine.remove(randomNum);

@@ -3,9 +3,9 @@ package Agent;
 import java.util.ArrayList;
 import java.util.List;
 import Model.Pic;
-import Own.Student.BankAccount;
+import Own.Person.BankAccount;
+import Own.Person.PayUTCAccount;
 import Own.Student.Drink;
-import Own.Student.PayUTCAccount;
 import State.StudentState;
 import Util.Beer;
 import Util.Constant;
@@ -51,6 +51,12 @@ public class Student implements Steppable {
 	private int walkCapacity;
 	
 	/**
+	 * Argent disponible, au cas où, sur le compte banquaire de l'étudiant.
+	 * Le compte PayUTC est à 0 et s'alimente sur le compte banquaire.
+	 */
+	private int moneyCapacity;
+	
+	/**
 	 * Chemin que doit suivre l'étudiant pour rejoindre
 	 * sa destination. Vide si l'étudiant n'a pas de destination.
 	 */
@@ -69,10 +75,13 @@ public class Student implements Steppable {
 		walkCapacity = Constant.STUDENT_WALK_CAPACITY;
 		cup = new Drink();
 		payUTC = new PayUTCAccount();
-		bankAccount = new BankAccount();
 		//Par défaut, l'étudiant est dehors
 		studentState = OUTSIDE;
 		path = new ArrayList<>();
+		
+		//TODO trouver une valeur par défaut
+		moneyCapacity = 100;
+		bankAccount = new BankAccount(moneyCapacity);
 	}
 
     @Override
@@ -242,7 +251,7 @@ public class Student implements Steppable {
 	 * @param money quantité ajoutée au compte
 	 */
 	private void rechargePayutc(double money) {
-		//TODO gérer le budget
+		//TODO gérer l'état postérieur (POOR, WAITNG_IN_QUEUE, NOTHING) et par extension l'exception
 		payUTC.transfer(bankAccount, money);
 	}
 }

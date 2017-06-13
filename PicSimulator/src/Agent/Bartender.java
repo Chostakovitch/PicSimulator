@@ -2,7 +2,10 @@ package Agent;
 
 import java.util.Map;
 
+import com.sun.javafx.cursor.CursorType;
+
 import Model.Pic;
+import Own.Bartender.Order;
 import State.BartenderState;
 import Util.Beer;
 import sim.engine.SimState;
@@ -73,13 +76,7 @@ public class Bartender implements Steppable {
     /**
      * Etudiant entrain d'être servi
      */
-    private Student studentToServe;
-
-    /**
-     * Bière à servir à l'étudiant
-     */
-    private Beer beerToServe;
-
+    private Order currentOrder;
 
     /**
      * Action actuelle du bartender
@@ -152,11 +149,8 @@ public class Bartender implements Steppable {
                     pic.getModel().setObjectLocation(this, initialPosition);
                     
                     //Remplissage effectif de la coupe, virement sur le compte du Pic
-                    studentToServe.getCup().fillCup(beerToServe);
-                    pic.getCheckoutCounter().getAccount().transfer(studentToServe.getPayUTC(), beerToServe.getPrice());
-                    studentToServe.endServe();
-                    studentToServe = null;
-                    beerToServe = null;
+                    performOrder(pic);
+                    
                     timeServing = speedToServe;
                     action = NOTHING;
                 }
@@ -176,19 +170,19 @@ public class Bartender implements Steppable {
     }
 
     /**
-     * Choisis un étudiant et prends sa commande
+     * Choix d'une commande à traiter
      *
      * @param pic pic
      */
     private void takeOrder(Pic pic) {
-        studentToServe = waitingLine.getStudent();
-        studentToServe.serve();
-        beerToServe = studentToServe.getOrder();
+        currentOrder = waitingLine.getNextOrder();
+        Student student = currentOrder.getStudent();
+        Beer beer = currentOrder.getBeerType();
+        student.serve();
         //On vérifie que l'étudiant a assez d'argent
-        if (studentToServe.getPayUTC().hasEnough(beerToServe.getPrice())) {
-            studentToServe.notEnoughMoney();
-            studentToServe = null;
-            beerToServe = null;
+        if (student.getPayUTC().hasEnough(beer.getPrice())) {
+            student.notEnoughMoney();
+            currentOrder = null;
         } else {
             CheckoutCounter cc = pic.getCheckoutCounter();
             if (cc.isMyTurnToUse(this)) {
@@ -208,7 +202,7 @@ public class Bartender implements Steppable {
     }
 
     private void moveToBarrel(Pic pic) {
-        Map.Entry<Barrel, Int2D> entry = pic.getBarrel(beerToServe);
+        Map.Entry<Barrel, Int2D> entry = pic.getBarrel(currentOrder.getBeerType());
         if (entry != null) {
             Int2D locationBarrel = entry.getValue();
             pic.getModel().setObjectLocation(this, locationBarrel.getX(), locationBarrel.getY() - 1);
@@ -227,5 +221,18 @@ public class Bartender implements Steppable {
             System.out.println("Cette bière n'existe pas ?");
             //TODO Faire en sorte de prévenir que la bière n'existe pas à l'étudiant
         }
+    }
+    
+    /**
+     * Réalise la commande : remplissage du verre et prélèvement.
+     * @param pic Modèle de la simulation
+     */
+    private void performOrder(Pic pic) {
+    	Student student = currentOrder.getStudent();
+    	Beer beer = currentOrder.getBeerType();
+    	student.getCup().fillCup(beer);
+        pic.getCheckoutCounter().getAccount().transfer(student.getPayUTC(), beer.getPrice());
+        student.endServe();
+        currentOrder = null;
     }
 }

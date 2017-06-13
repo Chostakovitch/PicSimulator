@@ -1,4 +1,4 @@
-package Own.Student;
+package Own.Person;
 
 /**
  * Représente un compte avec de l'argent et des capacités de consommation d'argent et de virement.

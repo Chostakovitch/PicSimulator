@@ -2,7 +2,7 @@ package Agent;
 
 import java.util.ArrayList;
 
-import Own.Student.PayUTCAccount;
+import Own.Person.PayUTCAccount;
 
 public class CheckoutCounter implements Inanimate {
 	/**
