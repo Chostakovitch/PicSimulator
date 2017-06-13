@@ -117,6 +117,7 @@ public class Bartender implements Steppable {
 
             case WAITING_CHECKOUT:
                 CheckoutCounter cc = pic.getCheckoutCounter();
+                //Le permanencier est le premier de la file, il peut utiliser la caisse
                 if (cc.isMyTurnToUse(this)) {
                     cc.useCounter(this);
                     action = USING_CHECKOUT;
@@ -124,6 +125,7 @@ public class Bartender implements Steppable {
                 break;
 
             case USING_CHECKOUT:
+            	//Le permanencier a fini d'enregistrer la transaction
                 if (timeUsingCheckoutCounter == 0) {
                     timeUsingCheckoutCounter = speedToUseCheckoutCounter;
                     moveToBarrel(pic);
@@ -149,9 +151,9 @@ public class Bartender implements Steppable {
                     //TODO gérer le déplacement avec le plus court chemin comme dans étudiant ; corollaire : classe gérant les entités se déplaçant et mutualisant les méthodes ?
                     pic.getModel().setObjectLocation(this, initialPosition);
                     
-                    //Remplissage effectif de la coupe et prélèvement
+                    //Remplissage effectif de la coupe, virement sur le compte du Pic
                     studentToServe.getCup().fillCup(beerToServe);
-                    studentToServe.getPayUTC().pay(beerToServe.getPrice());
+                    pic.getCheckoutCounter().getAccount().transfer(studentToServe.getPayUTC(), beerToServe.getPrice());
                     studentToServe.endServe();
                     studentToServe = null;
                     beerToServe = null;

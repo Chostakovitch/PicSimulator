@@ -241,7 +241,8 @@ public class Student implements Steppable {
 	 * Permet à l'étudiant de recharger son compte
 	 * @param money quantité ajoutée au compte
 	 */
-	private void rechargePayutc(float money) {
-		//TODO gérer la recharge
+	private void rechargePayutc(double money) {
+		//TODO gérer le budget
+		payUTC.transfer(bankAccount, money);
 	}
 }

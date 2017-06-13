@@ -2,16 +2,35 @@ package Agent;
 
 import java.util.ArrayList;
 
+import Own.Student.PayUTCAccount;
+
 public class CheckoutCounter implements Inanimate {
+	/**
+	 * File d'attente de permanenciers en attente d'utilisation de la caisse
+	 */
     private ArrayList<Bartender> waitingList;
+    
+    /**
+     * Permanencier en train d'utiliser la caisse, null si libre
+     */
     private Bartender usedBy;
+    
+    /**
+     * Compte PayUTC du Pic. Représente le gain total réalisé pendant la simulation.
+     */
+    private PayUTCAccount account;
 
     public CheckoutCounter() {
         waitingList = new ArrayList<>();
         usedBy = null;
+        account = new PayUTCAccount();
     }
+    
+    public PayUTCAccount getAccount() {
+		return account;
+	}
 
-    /**
+	/**
      * Permet à un permanencier de savoir si c'est à lui d'utiliser la caisse enregitreuse
      * C'est à lui si :
      *      - Personne ne l'utilise et il est premier dans la liste

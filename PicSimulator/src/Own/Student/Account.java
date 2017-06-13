@@ -9,6 +9,14 @@ public abstract class Account {
 	 */
 	private double balance;
 	
+	public Account() {
+		this(0);
+	}
+	
+	public Account(double initialAmount) {
+		this.balance = initialAmount;
+	}
+	
 	/**
 	 * Décrémente l'argent sur le compte
 	 * @param amount Montant à décompter
