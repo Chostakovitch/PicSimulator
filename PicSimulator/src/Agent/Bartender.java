@@ -13,6 +13,7 @@ import Model.Pic;
 import Own.Bartender.Order;
 import State.BartenderState;
 import Util.Beer;
+import Util.Constant;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
@@ -183,7 +184,7 @@ public class Bartender implements Steppable {
         Beer beer = currentOrder.getBeerType();
         student.serve();
         //On vérifie que l'étudiant a assez d'argent
-        if (student.getPayUTC().hasEnough(beer.getPrice())) {
+        if(!student.getPayUTC().hasEnough(beer.getPrice())) {
             student.notEnoughMoney();
             currentOrder = null;
         } else {
@@ -212,7 +213,7 @@ public class Bartender implements Steppable {
             barrelUsed = entry.getKey();
             if (barrelUsed.isMyTurnToUse(this)) {
                 barrelUsed.useBarrel(this);
-                if (!barrelUsed.pullBeer(33f))
+                if (!barrelUsed.pullBeer(Constant.CUP_CAPACITY))
                     action = REFILLING_BARREL;
                 else
                     action = USING_BARREL;

@@ -62,6 +62,7 @@ public class Pic extends SimState {
 	 */
 	private int studentsInside;
 
+	//TODO pourquoi ?
 	private HashMap<Barrel, Int2D> barrels;
 
 	private CheckoutCounter cc;
@@ -92,7 +93,6 @@ public class Pic extends SimState {
         addAgentsStudent();
         addAgentsBartenderAndWaitingLine();
         addAgentsBarrel();
-        addAgentsBarCounter();
         addAgentsCheckoutCounter();
 
         //Ajout de l'horloge

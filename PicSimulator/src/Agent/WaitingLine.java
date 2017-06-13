@@ -9,25 +9,25 @@ public class WaitingLine implements Inanimate {
     /**
      * Représente la file des commandes (i.e. étudiant et demande)
      */
-    private ArrayList<Order> studentLine;
+    private ArrayList<Order> orderLine;
 
     public WaitingLine() {
-        studentLine = new ArrayList<>();
+        orderLine = new ArrayList<>();
     }
 
     public void enterLine(Order order) {
-        studentLine.add(order);
+        orderLine.add(order);
         System.out.println("oui");
     }
 
     public Order getNextOrder() {
-        int nbStudent = studentLine.size() < 3 ? studentLine.size() : 3;
+        int nbStudent = orderLine.size() < 3 ? orderLine.size() : 3;
         int randomNum = ThreadLocalRandom.current().nextInt(0, nbStudent);
-        return studentLine.remove(randomNum);
+        return orderLine.remove(randomNum);
     }
 
     public boolean isEmpty() {
-        return studentLine.isEmpty();
+        return orderLine.isEmpty();
     }
     
     /**
@@ -35,6 +35,6 @@ public class WaitingLine implements Inanimate {
      * @return Entier
      */
     public int getStudentNumber() {
-    	return studentLine.size();
+    	return orderLine.size();
     }
 }
