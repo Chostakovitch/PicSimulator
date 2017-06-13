@@ -105,6 +105,8 @@ public class Constant {
         new Int2D(14, 20),
         new Int2D(15, 20)
     };
+    
+    public static Int2D EXIT_POSITION = new Int2D(0, 0);
 
     public static Int2D PIC_CHECKOUT_COUNTER_POSITION = new Int2D(15, 16);
     
@@ -157,6 +159,11 @@ public class Constant {
      * Nombre d'étudiants participant à la simulation (!= nombre d'étudiants dans le pic)
      */
     public static int STUDENT_NUMBER = 1;
+    
+    /**
+     * Nombre d'euros par recharge, par défaut
+     */
+    public static int RECHARGE_AMOUNT = 10;
     
     /**
      * Position de l'entrée du Pic

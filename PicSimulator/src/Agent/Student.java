@@ -1,12 +1,6 @@
 package Agent;
 
-import static State.StudentState.NOTHING;
-import static State.StudentState.OUTSIDE;
-import static State.StudentState.POOR;
-import static State.StudentState.WAITING_FOR_BEER;
-import static State.StudentState.WAITING_IN_QUEUE;
-import static State.StudentState.WALKING;
-import static State.StudentState.WALKING_TO_WAITING_LINE;
+import static State.StudentState.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,10 +107,8 @@ public class Student implements Steppable {
 	        //L'étudiant ne fait rien, il prend une décision
 	        case NOTHING:
 	        	if(mustLeavePic()) {
-	        		//TODO envoyer l'étudiant vers une sortie avant de le supprimer (état, booléen ?)
-	        		pic.getModel().remove(this);
-	            	pic.decStudentsInside();
-	            	studentState = OUTSIDE;
+	        		setNewWalkTarget(pic, Constant.EXIT_POSITION);
+	        		studentState = WALKING_TO_EXIT;
 	        	}
 	        	//Choisit une file d'attente et initie un déplacement
 	        	else if(mustGetBeer()) chooseWaitingLine(pic);
@@ -124,14 +116,13 @@ public class Student implements Steppable {
 	        	else if(mustWalk()) setNewWalkTarget(pic, pic.getRandomValidLocation());
 	        	break;
 	        //L'étudiant marchait, il continue sa marche
-	        case WALKING: case WALKING_TO_WAITING_LINE:
+	        case WALKING: case WALKING_TO_WAITING_LINE: case WALKING_TO_EXIT:
 	        	advancePath(pic);
 	        	break;
 	        //L'étudiant est pauvre. Mince alors. Il doit décider s'il recharge et continue de manger des pâtes ou s'il reste à l'eau.
 	        case POOR:
-	        	//TODO discuter de cette constante arbitraire
-	        	if(mustRecharge(10)) {
-	        		rechargePayutc(10);
+	        	if(mustRecharge(Constant.RECHARGE_AMOUNT)) {
+	        		rechargePayutc(Constant.RECHARGE_AMOUNT);
 	        		chooseWaitingLine(pic);
 	        	}
 	        	else {
@@ -181,6 +172,10 @@ public class Student implements Steppable {
 		return cup;
 	}
 
+	public StudentState getStudentState() {
+		return studentState;
+	}
+
 	/**
      * Génère un chemin pour le déplacement de l'étudiant.
      * @param pic État de la simulation
@@ -220,6 +215,12 @@ public class Student implements Steppable {
     		//S'il allait vers une file d'attente, il y rentre
     		if(studentState == WALKING_TO_WAITING_LINE) {
     			enterWaitingFile(pic);
+    		}
+    		//L'étudiant est en train de sortir, on le supprime graphiquement
+    		else if(studentState == WALKING_TO_EXIT) {
+        		pic.getModel().remove(this);
+            	pic.decStudentsInside();
+            	studentState = OUTSIDE;
     		}
     		//Sinon, il retourne à son état initial
     		else {

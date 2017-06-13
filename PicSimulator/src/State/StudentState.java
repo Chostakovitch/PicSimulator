@@ -25,6 +25,10 @@ public enum StudentState {
 	 */
 	WALKING_TO_WAITING_LINE,
 	/**
+	 * L'étudiant se dirige vers la sortie
+	 */
+	WALKING_TO_EXIT,
+	/**
 	 * L'étudiant est pauvre et n'a pas assez d'argent pour une bière
 	 */
 	POOR,

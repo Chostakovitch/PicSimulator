@@ -202,14 +202,14 @@ public class Bartender implements Steppable {
 
     private void moveToCheckout(Pic pic) {
         Int2D checkoutLocation = pic.getCheckoutCounterLocation();
-        pic.getModel().setObjectLocation(this, checkoutLocation.getX(), checkoutLocation.getY() - 1);
+        pic.getModel().setObjectLocation(this, checkoutLocation.getX(), checkoutLocation.getY() + 1);
     }
 
     private void moveToBarrel(Pic pic) {
         Map.Entry<Barrel, Int2D> entry = pic.getBarrel(currentOrder.getBeerType());
         if (entry != null) {
             Int2D locationBarrel = entry.getValue();
-            pic.getModel().setObjectLocation(this, locationBarrel.getX(), locationBarrel.getY() - 1);
+            pic.getModel().setObjectLocation(this, locationBarrel.getX(), locationBarrel.getY() + 1);
             barrelUsed = entry.getKey();
             if (barrelUsed.isMyTurnToUse(this)) {
                 barrelUsed.useBarrel(this);

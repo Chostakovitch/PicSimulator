@@ -95,10 +95,7 @@ public class PicWithUI extends GUIState {
      * @return Rond de couleur
      */
     private OvalPortrayal2D getBartenderPortrayal() {
-        OvalPortrayal2D r = new OvalPortrayal2D();
-        r.paint = Color.RED;
-        r.filled = true;
-        return r;
+    	return new BartenderPortrayal(state);
     }
 
     /**
