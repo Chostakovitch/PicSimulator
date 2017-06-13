@@ -83,12 +83,7 @@ public class PicWithUI extends GUIState {
      * Renvoie la représentation graphique d'un fût de bière
      * @return Rond de couleur
      */
-    private OvalPortrayal2D getBarrelPortrayal() {
-        OvalPortrayal2D r = new OvalPortrayal2D();
-        r.paint = Color.YELLOW;
-        r.filled = true;
-        return r;
-    }
+    private OvalPortrayal2D getBarrelPortrayal() { return new BarrelPortrayal(state); }
 
     /**
      * Renvoie la représentation graphique d'un permanencier
