@@ -64,6 +64,11 @@ public class Student implements Steppable {
 	 * sa destination. Vide si l'étudiant n'a pas de destination.
 	 */
 	private List<Int2D> path;
+	
+	/**
+	 * L'étudiant est vraiment pauvre et ne peut plus recharger
+	 */
+	private boolean veryPoor;
 
     public Student() {
     	this(0);
@@ -81,14 +86,20 @@ public class Student implements Steppable {
 		//Par défaut, l'étudiant est dehors
 		studentState = OUTSIDE;
 		path = new ArrayList<>();
-		//TODO trouver une valeur par défaut
-		moneyCapacity = 100;
+		//TODO affiner la valeur
+		moneyCapacity = Constant.BANK_INITIAL_BALANCE;
 		bankAccount = new BankAccount(moneyCapacity);
+		veryPoor = false;
 	}
 
     @Override
     public void step(SimState state) {
         Pic pic = (Pic) state;
+        //Quoiqu'il arrive, si l'étudiant a une bière, il peut la consommer avant de décider de son action
+        if(!cup.isEmpty() && mustDrinkBeer()) {
+        	cup.drink(Constant.STUDENT_SWALLOW_CAPACITY);
+        }
+        
         //Décision en fonction de l'état de l'étudiant
         switch(studentState) {
 	        //L'étudiant attend pour une bière, il n'a rien à faire
@@ -126,6 +137,7 @@ public class Student implements Steppable {
 	        		chooseWaitingLine(pic);
 	        	}
 	        	else {
+	        		veryPoor = true;
 	        		studentState = NOTHING;
 	        	}
 	        	break;
@@ -174,6 +186,10 @@ public class Student implements Steppable {
 
 	public StudentState getStudentState() {
 		return studentState;
+	}
+	
+	public boolean isVeryPoor() {
+		return veryPoor;
 	}
 
 	/**
@@ -257,7 +273,7 @@ public class Student implements Steppable {
      * @return true si l'étudiant doit aller chercher une bière
      */
     private boolean mustGetBeer() {
-    	if(!cup.isEmpty()) return false;
+    	if(!cup.isEmpty() || veryPoor) return false;
     	return true;
     }
     
@@ -278,6 +294,15 @@ public class Student implements Steppable {
     private boolean mustWalk() throws IllegalStateException {
     	if(studentState == OUTSIDE) throw new IllegalStateException("Student is not inside Pic");
     	return Math.random() < 0.5;
+    }
+    
+    /**
+     * Indique si l'étudiant doit boire une gorgée de bière
+     * @return Booléeen
+     */
+    private boolean mustDrinkBeer() {
+    	if(cup.isEmpty()) return false;
+    	return true;
     }
 
 	/**

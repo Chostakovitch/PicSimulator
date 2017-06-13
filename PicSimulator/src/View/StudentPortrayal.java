@@ -1,6 +1,8 @@
 package View;
 
 import static State.StudentState.POOR;
+import static State.StudentState.WAITING_FOR_BEER;
+import static State.StudentState.WAITING_IN_QUEUE;
 import static State.StudentState.WALKING_TO_EXIT;
 import static State.StudentState.WALKING_TO_WAITING_LINE;
 
@@ -52,7 +54,7 @@ public class StudentPortrayal extends ScalablePortrayal<Student> {
             }
             //L'étudiant s'en va : cercle vert
             else if(student.getStudentState() == WALKING_TO_EXIT) {
-            	graphics.setColor(Color.green);
+            	graphics.setColor(Color.pink);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
             //L'étudiant va chercher une bière : cercle bleu
@@ -61,8 +63,13 @@ public class StudentPortrayal extends ScalablePortrayal<Student> {
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
             //L'étudiant n'a plus assez d'argent : cercle rouge
-            else if(student.getStudentState() == POOR) {
+            else if(student.isVeryPoor() || student.getStudentState() == POOR) {
             	graphics.setColor(Color.red);
+            	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
+            }
+            //L'étudiant attend d'être servi
+            else if(student.getStudentState() == WAITING_IN_QUEUE || student.getStudentState() == WAITING_FOR_BEER) {
+            	graphics.setColor(Color.YELLOW);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
 		}

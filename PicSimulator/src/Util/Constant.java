@@ -158,12 +158,17 @@ public class Constant {
     /**
      * Nombre d'étudiants participant à la simulation (!= nombre d'étudiants dans le pic)
      */
-    public static int STUDENT_NUMBER = 1;
+    public static int STUDENT_NUMBER = 30;
     
     /**
      * Nombre d'euros par recharge, par défaut
      */
-    public static int RECHARGE_AMOUNT = 10;
+    public static int RECHARGE_AMOUNT = 5;
+    
+    /**
+     * Balance intiale d'un compte banquaire d'étudiant par défaut
+     */
+    public static int BANK_INITIAL_BALANCE = 5;
     
     /**
      * Position de l'entrée du Pic
@@ -174,4 +179,24 @@ public class Constant {
      * Distance à laquelle un étudiant peut se déplacer (au maximum) pendant une itération
      */
     public static int STUDENT_WALK_CAPACITY = TIMESTEP;
+    
+    /**
+     * Nombre de centilitres que l'étudiant boit par gorgée
+     */
+    public static int STUDENT_SWALLOW_CAPACITY = 3;
+    
+    /**
+     * Secondes que prend un permanencier pour prendre une commande 
+     */
+    public static int BARTENDER_TIME_TO_SERVE = 5;
+    
+    /**
+     * Secondes que prend un permanencier pour remplir un verre
+     */
+    public static int BARTENDER_TIME_TO_FILL = 3;
+    
+    /**
+     * Secondes que prend un permanencier pour utiliser la caisse
+     */
+    public static int BARTENDER_TIME_TO_CHECKOUT = 2;
 }

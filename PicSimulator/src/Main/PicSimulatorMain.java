@@ -17,7 +17,7 @@ public class PicSimulatorMain {
         Console console = new Console(gui);
         
         //Contrôle du délai, à ajuster pour vos besoins
-        console.setPlaySleep(75);
+        console.setPlaySleep(50);
         
         console.setVisible(true);
     }

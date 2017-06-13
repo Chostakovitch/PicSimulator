@@ -77,6 +77,8 @@ public class Pic extends SimState {
     	barrels = new HashMap<>();
     	
     	studentsInside = 0;
+
+		cc = new CheckoutCounter();
     }
 
     @Override
@@ -300,7 +302,6 @@ public class Pic extends SimState {
 	 * Ajouter la caisse enregistreuse
 	 */
 	private void addAgentsCheckoutCounter() {
-		cc = new CheckoutCounter();
 		Int2D pos = Constant.PIC_CHECKOUT_COUNTER_POSITION;
 		pic.setObjectLocation(cc, pos.x, pos.y);
 	}
@@ -326,7 +327,7 @@ public class Pic extends SimState {
 			Int2D posBart = Constant.BARTENDER_POSITIONS[i];
 			Int2D posWait = Constant.WAITING_LINES_POSITIONS[i];
 			WaitingLine w = new WaitingLine();
-			Bartender b = new Bartender(w, 10, 10, 10, posBart);
+			Bartender b = new Bartender(w, Constant.BARTENDER_TIME_TO_SERVE, Constant.BARTENDER_TIME_TO_FILL, Constant.BARTENDER_TIME_TO_CHECKOUT, posBart);
 			schedule.scheduleRepeating(b);
 			pic.setObjectLocation(b, posBart.getX(), posBart.getY());
 			pic.setObjectLocation(w, posWait.getX(), posWait.getY());

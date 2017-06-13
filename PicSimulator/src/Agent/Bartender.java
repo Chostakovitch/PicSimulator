@@ -100,7 +100,7 @@ public class Bartender implements Steppable {
         timeServing = speedServe;
 
         speedToUseCheckoutCounter = speedCheckoutCounter;
-        timeServing = speedCheckoutCounter;
+        timeUsingCheckoutCounter = speedCheckoutCounter;
 
         action = NOTHING;
     }
@@ -128,6 +128,7 @@ public class Bartender implements Steppable {
             	//Le permanencier a fini d'enregistrer la transaction
                 if (timeUsingCheckoutCounter == 0) {
                     timeUsingCheckoutCounter = speedToUseCheckoutCounter;
+                    pic.getCheckoutCounter().endUseCounter();
                     moveToBarrel(pic);
                 } else
                     timeUsingCheckoutCounter--;

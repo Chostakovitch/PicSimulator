@@ -39,8 +39,17 @@ public class Drink {
 		return quantity == 0;
 	}
 	
-	public void drink(int quantity) {
+	public int getQuantity() {
+		return quantity;
+	}
+
+	/**
+	 * Boit une gorgée de bière
+	 * @param quantity Centilitres bus par la gorgée
+	 * @throws IllegalStateException Si la bière ne contient pas assez de liquide
+	 */
+	public void drink(int amount) throws IllegalStateException {
 		if(isEmpty()) throw new IllegalStateException("Nothing in the cup!");
-		this.quantity -= (this.quantity < quantity) ? this.quantity : quantity;
+		quantity -= (amount < quantity) ? amount : quantity;
 	}
 }

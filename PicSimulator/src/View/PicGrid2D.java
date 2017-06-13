@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -21,6 +22,11 @@ import sim.portrayal.grid.SparseGridPortrayal2D;
  * Elle lui ajoute le nombre d'étudiants à l'intérieur du Pic
  */
 public class PicGrid2D extends SparseGridPortrayal2D {
+	/**
+	 * Formattage du CA
+	 */
+	private static DecimalFormat df2 = new DecimalFormat("#.00");
+	
 	/**
 	 * Police utilisée pour l'heure
 	 */
@@ -49,6 +55,7 @@ public class PicGrid2D extends SparseGridPortrayal2D {
 			//Formattage
 			String time = agnTime.format(DateTimeFormatter.ISO_LOCAL_TIME);
 			String nbStudents = "Étudiants : " + String.valueOf(pic.getStudentsInside());
+			String CA = "CA : " + df2.format(pic.getCheckoutCounter().getAccount().getBalance());
 			
 			//Affichage supplémentaire d'une grille pour délimiter les cellules
 			/* graphics.setColor(Color.GRAY);
@@ -65,8 +72,10 @@ public class PicGrid2D extends SparseGridPortrayal2D {
 			graphics.setFont(font);
 			Rectangle2D recTime = font.getStringBounds(time, graphics.getFontRenderContext());
 			Rectangle2D recNbStudents = font.getStringBounds(nbStudents, graphics.getFontRenderContext());
+			Rectangle2D recCA = font.getStringBounds(CA, graphics.getFontRenderContext());
 			graphics.drawString(time, (int)(info.draw.width - recTime.getWidth() - 10), (int)recTime.getHeight());
 			graphics.drawString(nbStudents, (int)(info.draw.width - recNbStudents.getWidth() - 10), 2 * (int)recNbStudents.getHeight());
+			graphics.drawString(CA, (int)(info.draw.width - recCA.getWidth() - 10), 3 * (int)recNbStudents.getHeight());
 		}
 	}
 }
