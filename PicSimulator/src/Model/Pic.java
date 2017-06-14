@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import Util.DataPicker;
 import org.threeten.extra.Interval;
 
 import Agent.BarCounter;
@@ -41,6 +42,7 @@ import sim.util.Int2D;
 public class Pic extends SimState {
 	private static final long serialVersionUID = 1L;
 	private SparseGrid2D pic = new SparseGrid2D(Constant.PIC_WIDTH, Constant.PIC_HEIGHT);
+	DataPicker dataPicker = new DataPicker();
     
 	/**
 	 * Horaire actuel du Pic
@@ -346,7 +348,8 @@ public class Pic extends SimState {
      */
     private void addAgentsStudent() {
     	for(int i = 0; i < Constant.STUDENT_NUMBER; ++i) {
-    		schedule.scheduleRepeating(new Student(10));
+    		// TODO: trier si l'agent doit être ajouté (selon ses jours de pic et les horraires ?)
+    		schedule.scheduleRepeating(new Student(dataPicker.getRandomLine()));
     	}
     }
     
