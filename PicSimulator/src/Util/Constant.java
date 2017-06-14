@@ -11,12 +11,12 @@ public class Constant {
 	/**
 	 * Largeur du Pic
 	 */
-    public static int PIC_WIDTH = 30;
+    public static int PIC_WIDTH = 35;
     
     /**
      * Hauteur du Pic
      */
-    public static int PIC_HEIGHT = 30;
+    public static int PIC_HEIGHT = 26;
 
     /**
      * Position des murs du Pic
@@ -139,7 +139,7 @@ public class Constant {
     /**
      * Hauteur de la console d'affichage
      */
-    public static int FRAME_HEIGHT = 1000;
+    public static int FRAME_HEIGHT = (int)(1000 * ((double)PIC_HEIGHT / (double)PIC_WIDTH));
     
     /**
      * Heure d'ouverture du Pic
