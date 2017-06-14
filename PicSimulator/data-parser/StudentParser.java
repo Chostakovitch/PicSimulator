@@ -1,3 +1,5 @@
+
+
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
@@ -37,6 +39,7 @@ public class StudentParser {
 
     private static String[] parseLine(String[] oldLine) {
         String[] newLine = new String[23];
+        int result;
 
         // Si la personne ne va pas au pic ou ne boit pas, elle ne nous intéresse pas.
         if (oldLine[5].equals("Non") || oldLine[6].equals("Non")) return null;
@@ -48,8 +51,7 @@ public class StudentParser {
 
         // AGE
         // TODO: remplacer par moyenne des ages
-        if (!oldLine[2].matches("^-?\\d+$")) newLine[1] = "0";
-        else newLine[1] = oldLine[2];
+        newLine[1] = testNumber(oldLine[2], "21", 15,90 );
 
         // BRANCHE/TC/HUTECH/PROF etc
         Boolean ok = false;
@@ -124,12 +126,10 @@ public class StudentParser {
         }
 
         // Nombre de bière bu par soir
-        if(oldLine[18].matches("^-?\\d+$")) newLine[14] = oldLine[18];
-        else newLine[14] = "2";
+        newLine[14] = testNumber(oldLine[18], "2", 0,10 );
 
         // Temps pour boire une bière
-        if(oldLine[19].matches("^-?\\d+$")) newLine[15] = oldLine[19];
-        else newLine[15] = "20";
+        newLine[14] = testNumber(oldLine[19], "20", 0,120 );
 
         // Heure d'arrivée
         if (oldLine[20].isEmpty()) newLine[16] = "20:00:00";
@@ -140,8 +140,7 @@ public class StudentParser {
         else newLine[17] = oldLine[21];
 
         // Budget
-        if(oldLine[22].matches("^-?\\d+$")) newLine[18] = oldLine[22];
-        else newLine[18] = "10";
+        newLine[18] = testNumber(oldLine[22], "10", 0,100 );
 
         // L'étudiant as-il-mangé
         if(oldLine[23].contains("Oui")) newLine[19] = "Oui";
@@ -151,13 +150,22 @@ public class StudentParser {
         newLine[20] = oldLine[24];
 
         // Sensibilité à l'alcool
-        if(oldLine[25].matches("^-?\\d+$")) newLine[21] = oldLine[25];
-        else newLine[21] = "3";
+        newLine[21] = testNumber(oldLine[25], "3", 0,5 );
 
         // Nombre d'amis rencontré lors d'une soirée au pic
-        if(oldLine[26].matches("^-?\\d+$")) newLine[22] = oldLine[26];
-        else newLine[22] = "4";
+        newLine[22] = testNumber(oldLine[26], "3", 0,50 );
 
         return newLine;
+    }
+
+    private static String testNumber(String number, String def, Integer min, Integer max) {
+        int result;
+        try {
+            result = Integer.parseInt(number);
+            if (( min != null && result < min) || (max != null && result > max)) return number;
+            return def;
+        } catch (NumberFormatException e) {
+            return def;
+        }
     }
 }
