@@ -2,11 +2,16 @@ package Agent;
 
 import static State.StudentState.*;
 
+import java.time.Instant;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import Model.Pic;
+import Enum.Gender;
+import Enum.TypeSemestre;
 import Own.Bartender.Order;
 import Own.Person.BankAccount;
 import Own.Person.PayUTCAccount;
@@ -70,15 +75,41 @@ public class Student implements Steppable {
 	 */
 	private boolean veryPoor;
 
+	private Gender gender;
+    private Integer age;
+    private TypeSemestre type;
+    private String semester;
+    private HashMap<Beer, Integer> beersGrade;
+    private Integer beerMax;
+    private Integer drinkingTime;
+    private LocalTime arrivalTime;
+    private LocalTime departureTime;
+    private Boolean hasAte;
+    private Integer alcoholSensitivityGrade;
+
     public Student() {
     	this(0);
     }
 
-	/**
-	 * //TODO Utiliser cette méthode quand on aura les chiffres
-	 * @param money Argent au début de la simulation
-	 */
-	public Student(float money) {
+    /**
+     * //TODO Utiliser cette méthode quand on aura les chiffres
+     * @param money Argent au début de la simulation
+     */
+    public Student(int money) {
+        hasBeenInside = false;
+        walkCapacity = Constant.STUDENT_WALK_CAPACITY;
+        cup = new Drink();
+        payUTC = new PayUTCAccount();
+        //Par défaut, l'étudiant est dehors
+        studentState = OUTSIDE;
+        path = new ArrayList<>();
+        //TODO affiner la valeur
+        moneyCapacity = Constant.BANK_INITIAL_BALANCE;
+        bankAccount = new BankAccount(moneyCapacity);
+        veryPoor = false;
+    }
+
+	public Student(String[] dataLine) {
 		hasBeenInside = false;
 		walkCapacity = Constant.STUDENT_WALK_CAPACITY;
 		cup = new Drink();
@@ -86,11 +117,40 @@ public class Student implements Steppable {
 		//Par défaut, l'étudiant est dehors
 		studentState = OUTSIDE;
 		path = new ArrayList<>();
-		//TODO affiner la valeur
-		moneyCapacity = Constant.BANK_INITIAL_BALANCE;
-		bankAccount = new BankAccount(moneyCapacity);
 		veryPoor = false;
-	}
+
+        gender = dataLine[0].equals("F") ? Gender.FEMALE : Gender.MALE;
+        age = Integer.parseInt(dataLine[1]);
+        switch (dataLine[2]) {
+            case "tronc commun": type = TypeSemestre.TRONC_COMMUN; break;
+            case "branche": type = TypeSemestre.BRANCHE; break;
+            case "doctorant": type = TypeSemestre.DOCTORANT; break;
+            case "escom": type = TypeSemestre.ESCOM; break;
+            case "hutech": type = TypeSemestre.HUTECH; break;
+            case "professeur-chercheur": type = TypeSemestre.PROFESSEUR_CHERCHEUR; break;
+            case "diplomé": type = TypeSemestre.DIPLOME; break;
+            case "double diplome": type = TypeSemestre.DOUBLE_DIPLOME; break;
+        }
+        semester = dataLine[3];
+
+        beersGrade = new HashMap<>();
+        for (int i = 4; i <= 13; i++) {
+            String[] beer = dataLine[i].split(":");
+            beersGrade.put(Beer.getCorrespondantEnum(beer[0]), Integer.parseInt(beer[1]));
+        }
+
+        beerMax = Integer.parseInt(dataLine[14]);
+        drinkingTime = Integer.parseInt(dataLine[15]);
+
+        String[] time = dataLine[16].split(":");
+        arrivalTime = LocalTime.of(Integer.parseInt(time[0]), Integer.parseInt(time[1]));
+        time = dataLine[17].split(":");
+        departureTime = LocalTime.of(Integer.parseInt(time[0]), Integer.parseInt(time[1]));
+
+        bankAccount = new BankAccount(Integer.parseInt(dataLine[18]));
+        hasAte = dataLine[19].equals("Non") ? false : true;
+        alcoholSensitivityGrade = Integer.parseInt(dataLine[21]);
+    }
 
     @Override
     public void step(SimState state) {
