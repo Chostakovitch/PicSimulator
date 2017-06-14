@@ -27,9 +27,18 @@ public enum Beer {
         this.price = price;
     }
 
+    public static Beer getCorrespondantEnum(String name) {
+        for(Beer beer : Beer.values()) {
+            if(beer.getName().equals(name)) return beer;
+        }
+        return null;
+    }
+
     public double getPrice() {
         return price;
     }
+
+    public String getName() { return name ;}
 
     @Override
 	public String toString(){
