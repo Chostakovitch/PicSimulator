@@ -110,14 +110,17 @@ public class StudentParser {
         else newLine[3] = "";
 
         // Bières
+        String[] beers = {"Cidre Loic Raison","Chimay Bleue","Duvel","Grand Cru St Feuillien","Pêche Mel Bush","Westmalle Triple","Barbar Blonde","Chouffe","Cuvée Des Trolls","Delirium Tremens","Gauloise Rouge"};
         for (int i = 1; i <= 10; i++) {
+            String note;
             String avis = oldLine[6+i];
-            if (avis.isEmpty() || avis.equals("Jamais bu")) newLine[3+i] = "0";
-            else if (avis.equals("Je déteste !")) newLine[3+i] = "-5";
-            else if (avis.equals("Bof...")) newLine[3+i] = "-1";
-            else if (avis.equals("Pas mal")) newLine[3+i] = "2";
-            else if (avis.equals("J'adore !")) newLine[3+i] = "5";
-            else newLine[3+i] = "0";
+            if (avis.isEmpty() || avis.equals("Jamais bu")) note = "0";
+            else if (avis.equals("Je déteste !")) note = "-5";
+            else if (avis.equals("Bof...")) note = "-1";
+            else if (avis.equals("Pas mal")) note = "2";
+            else if (avis.equals("J'adore !")) note = "5";
+            else note = "0";
+            newLine[3+i] = beers[i-1] + ':' + note;
         }
 
         // Nombre de bière bu par soir
@@ -125,7 +128,7 @@ public class StudentParser {
         else newLine[14] = "2";
 
         // Temps pour boire une bière
-        if(oldLine[19].matches("^-?\\d+$")) newLine[14] = oldLine[19];
+        if(oldLine[19].matches("^-?\\d+$")) newLine[15] = oldLine[19];
         else newLine[15] = "20";
 
         // Heure d'arrivée
