@@ -136,7 +136,8 @@ public class Student implements Steppable {
         beersGrade = new HashMap<>();
         for (int i = 4; i <= 13; i++) {
             String[] beer = dataLine[i].split(":");
-            beersGrade.put(Beer.getCorrespondantEnum(beer[0]), Integer.parseInt(beer[1]));
+            Beer beerEnum = Beer.getCorrespondantEnum(beer[0]);
+            if (beerEnum != null) beersGrade.put(beerEnum, Integer.parseInt(beer[1]));
         }
 
         beerMax = Integer.parseInt(dataLine[14]);

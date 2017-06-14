@@ -16,7 +16,8 @@ public enum Beer {
     DeliriumTremens("Delirium Tremens", 1.80),
     GauloiseRouge("Gauloise Rouge", 1.90),
     Kwak("Kwak", 1.95),
-    McChouffe("Mc Chouffe", 1.95);
+    McChouffe("Chouffe", 1.95),
+    PecheMelBush("Pêche Mel Bush", 18.0);
 
     private String name = "";
     private double price = 0.0;
