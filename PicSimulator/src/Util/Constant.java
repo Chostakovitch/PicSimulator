@@ -77,6 +77,7 @@ public class Constant {
      * Position des fûts de bière
      */
     public static Int2D BARREL_POSITIONS[] = {
+        new Int2D(5, 16),
         new Int2D(6, 16),
         new Int2D(6, 16),
         new Int2D(7, 16),
