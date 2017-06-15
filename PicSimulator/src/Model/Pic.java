@@ -6,9 +6,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.TextStyle;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -28,9 +26,9 @@ import Agent.Inanimate;
 import Agent.Student;
 import Agent.WaitingLine;
 import Agent.Wall;
-import Enum.Beer;
 import PathFinding.AStar;
 import PathFinding.Node;
+import Enum.Beer;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
@@ -154,14 +152,12 @@ public class Pic extends SimState {
      * @return true si la capacité maximale en étudiants de la case est atteinte
      */
     public boolean isLocationFull(int x, int y) {
-    	int studentCount = 0;
-    	Bag objs = pic.getObjectsAtLocation(x, y);
-    	if(objs == null) return false;
-    	//On compte le nombre d'étudiants sur une case
-    	for(int i = 0; i < objs.size(); ++i) {
-    		if(objs.get(i) instanceof Student) ++studentCount;
-    	}
-    	return studentCount >= Constant.MAX_STUDENT_PER_CELL;
+    	Int2D pos = new Int2D(x, y);
+    	return 
+    			//Une file d'attente a une capacité illimitée
+    			getEntitiesAtLocation(pos, WaitingLine.class).size() == 0 &&
+    			//On compte le nombre d'étudiants sur la case, si ce n'est pas une file d'attente
+    			getEntitiesAtLocation(pos, Student.class).size() >= Constant.MAX_STUDENT_PER_CELL;
     }
 
     public Map.Entry<Barrel, Int2D> getBarrel(Beer b) {
@@ -257,8 +253,10 @@ public class Pic extends SimState {
      * @return Liste de T
      */
     public <T> List<T> getEntitiesAtLocation(Int2D pos, Class<T> type) {
+    	Bag entities = pic.getObjectsAtLocation(pos);
+    	if(entities == null) return new ArrayList<T>();
     	return Arrays
-			.stream(pic.getObjectsAtLocation(pos).objs)
+			.stream(entities.objs)
 			.filter(e -> type.isInstance(e))
 			.map(type::cast)
 			.collect(Collectors.toList());
@@ -268,7 +266,7 @@ public class Pic extends SimState {
      * Calcule toutes les positions invalides de la grille (au sens de isLocationValid)
      * @return Liste des positions invalides
      */
-    private List<Int2D> getAllInvalidLocations() {
+    public List<Int2D> getAllInvalidLocations() {
     	List<Int2D> pos = new ArrayList<>();
     	for(int i = 0; i < pic.getHeight(); ++i) {
     		for(int j = 0; j < pic.getWidth(); ++j) {
@@ -349,17 +347,10 @@ public class Pic extends SimState {
      * ajoutés qu'au scheduling et non à la grille.
      */
     private void addAgentsStudent() {
-    	int i = 0;
-		String[] days;
-		Locale locale = Locale.FRANCE;
-    	while (i < Constant.STUDENT_NUMBER) {
-    		String[] line = dataPicker.getRandomLineStudent();
-			days = line[20].replace(" ", "").split(",");
-			if (Arrays.asList(days).contains(Constant.DATE.getDayOfWeek().getDisplayName(TextStyle.FULL, locale)) || random.nextInt(11) > 8) {
-				schedule.scheduleRepeating(new Student(dataPicker.getRandomLineStudent()));
-				i++;
-			}
-		}
+    	for(int i = 0; i < Constant.STUDENT_NUMBER; ++i) {
+    		// TODO: trier si l'agent doit être ajouté (selon ses jours de pic et les horraires ?)
+    		schedule.scheduleRepeating(new Student(dataPicker.getRandomLineStudent()));
+    	}
     }
     
     /**

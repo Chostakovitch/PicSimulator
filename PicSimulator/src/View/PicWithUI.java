@@ -155,14 +155,4 @@ public class PicWithUI extends GUIState {
         displayFrame.setVisible(true);
         display.attach(gridGUI, "Pic");
     }
-
-    @Override
-	public Object getSimulationInspectedObject() { return state; }
-
-    @Override
-	public Inspector getInspector() {
-        Inspector i = super.getInspector();
-        i.setVolatile(true);
-        return i;
-    }
 }
