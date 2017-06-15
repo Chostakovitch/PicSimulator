@@ -1,19 +1,31 @@
 package Agent;
 
-import static State.StudentState.*;
+import static State.StudentState.NOTHING;
+import static State.StudentState.OUTSIDE;
+import static State.StudentState.POOR;
+import static State.StudentState.WAITING_FOR_BEER;
+import static State.StudentState.WAITING_IN_QUEUE;
+import static State.StudentState.WALKING;
+import static State.StudentState.WALKING_TO_EXIT;
+import static State.StudentState.WALKING_TO_WAITING_LINE;
 
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import Model.Pic;
+import Enum.Beer;
 import Enum.Gender;
 import Enum.TypeSemestre;
+import Model.Pic;
 import Own.Bartender.Order;
 import Own.Person.BankAccount;
 import Own.Person.PayUTCAccount;
 import Own.Student.Drink;
 import State.StudentState;
-import Util.Beer;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.engine.Steppable;
@@ -70,6 +82,11 @@ public class Student implements Steppable {
 	 * L'étudiant est vraiment pauvre et ne peut plus recharger
 	 */
 	private boolean veryPoor;
+	
+	/**
+	 * Modèle de la simulation
+	 */
+	private Pic pic;
 
 	private Gender gender;
     private Integer age;
@@ -144,6 +161,7 @@ public class Student implements Steppable {
         time = dataLine[17].split(":");
         departureTime = LocalTime.of(Integer.parseInt(time[0]), Integer.parseInt(time[1]));
 
+        //TODO réfléchir à une proba de mettre plus ou moins
         bankAccount = new BankAccount(Integer.parseInt(dataLine[18]));
         hasAte = dataLine[19].equals("Non") ? false : true;
         alcoholSensitivityGrade = Integer.parseInt(dataLine[21]);
@@ -151,7 +169,7 @@ public class Student implements Steppable {
 
     @Override
     public void step(SimState state) {
-        Pic pic = (Pic) state;
+        pic = (Pic) state;
         //Quoiqu'il arrive, si l'étudiant a une bière, il peut la consommer avant de décider de son action
         if(!cup.isEmpty() && mustDrinkBeer()) {
         	cup.drink(Constant.STUDENT_SWALLOW_CAPACITY);
@@ -179,19 +197,19 @@ public class Student implements Steppable {
 	        		studentState = WALKING_TO_EXIT;
 	        	}
 	        	//Choisit une file d'attente et initie un déplacement
-	        	else if(mustGetBeer()) chooseWaitingLine(pic);
+	        	else if(mustGetBeer()) chooseWaitingLine();
 	        	//Choisit une destination aléatoire
 	        	else if(mustWalk()) setNewWalkTarget(pic, pic.getRandomValidLocation());
 	        	break;
 	        //L'étudiant marchait, il continue sa marche
 	        case WALKING: case WALKING_TO_WAITING_LINE: case WALKING_TO_EXIT:
-	        	advancePath(pic);
+	        	advancePath();
 	        	break;
 	        //L'étudiant est pauvre. Mince alors. Il doit décider s'il recharge et continue de manger des pâtes ou s'il reste à l'eau.
 	        case POOR:
 	        	if(mustRecharge(Constant.RECHARGE_AMOUNT)) {
 	        		rechargePayutc(Constant.RECHARGE_AMOUNT);
-	        		chooseWaitingLine(pic);
+	        		chooseWaitingLine();
 	        	}
 	        	else {
 	        		veryPoor = true;
@@ -268,7 +286,7 @@ public class Student implements Steppable {
      * Si le déplacement est fini, positionne l'état de l'étudiant à NOTHING.
      * @param pic État de la simulation
      */
-    private void advancePath(Pic pic) {
+    private void advancePath() {
     	//Position courante
     	Int2D currentPos = pic.getModel().getObjectLocation(this);
     	
@@ -287,7 +305,7 @@ public class Student implements Steppable {
     	if(path.isEmpty()) {
     		//S'il allait vers une file d'attente, il y rentre
     		if(studentState == WALKING_TO_WAITING_LINE) {
-    			enterWaitingFile(pic);
+    			enterWaitingFile();
     		}
     		//L'étudiant est en train de sortir, on le supprime graphiquement
     		else if(studentState == WALKING_TO_EXIT) {
@@ -373,7 +391,7 @@ public class Student implements Steppable {
 	 * celle contenant le moins d'étudiant au moment d'y entrer. Initie le déplacement.
 	 * @param pic Modèle de la simulation.
 	 */
-	private void chooseWaitingLine(Pic pic) {		
+	private void chooseWaitingLine() {		
 		WaitingLine line = Arrays
 			.stream(Constant.WAITING_LINES_POSITIONS)
 			.map(pos -> pic.getEntitiesAtLocation(pos, WaitingLine.class))
@@ -387,7 +405,7 @@ public class Student implements Steppable {
 	/**
 	 * L'étudiant rentre dans une file d'attente sur sa position actuelle
 	 */
-	private void enterWaitingFile(Pic pic) throws IllegalStateException {
+	private void enterWaitingFile() throws IllegalStateException {
 		//On récupère la file d'attente
 		List<WaitingLine> lines = pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), WaitingLine.class);
 		if(lines.isEmpty()) throw new IllegalStateException("Aucune file d'attente sur la position courante!");
@@ -402,65 +420,32 @@ public class Student implements Steppable {
      * @return choix de la bière
      */
 	private Beer choiceOrder() {
-	    Beer choice = null;
-	    boolean noFav = false;
-	    boolean noNotBad = false;
-	    boolean noNeverTaste = false;
-	    boolean noAverage = false;
-
-        /*
-         * Je ne pense pas que ce soit optimal mais j'ai pas eu d'autres idées
-         * En gros on random et si il a pas de bière dans la catégorie qu'il random et qu'il a fait toutes les catégories
-         * au dessus, il prend celle d'en dessous.
-         * Si il n'a pas encore fait les catégories au dessus, il re random
-         */
-        while(choice == null) {
-            System.out.println("Test ?");
-            double prob = Math.random();
-            if (prob < 0.85 && !noFav) {
-                Optional<Map.Entry<Beer, Integer>> optBeer = getRandomGradeBeer(Constant.LOVE_GRADE);
-                if (optBeer.isPresent())
-                    choice = optBeer.get().getKey();
-                else
-                    noFav = true;
-            }
-            if ((prob >= 0.85 && prob < 0.95 && !noNotBad) || (noFav && !noNotBad)) {
-                Optional<Map.Entry<Beer, Integer>> optBeer = getRandomGradeBeer(Constant.NOT_BAD_GRADE);
-                if (optBeer.isPresent())
-                    choice = optBeer.get().getKey();
-                else
-                    noNotBad = true;
-            }
-            if ((prob >= 0.95 && prob < 0.99 && !noNeverTaste) || (noFav && noNotBad && !noNeverTaste)) {
-                Optional<Map.Entry<Beer, Integer>> optBeer = getRandomGradeBeer(Constant.NEVER_TASTE_GRADE);
-                if (optBeer.isPresent())
-                    choice = optBeer.get().getKey();
-                else
-                    noNeverTaste = true;
-            }
-            if ((prob == 0.99 && !noAverage) || (noFav && noNotBad && noNeverTaste && !noAverage)) {
-                Optional<Map.Entry<Beer, Integer>> optBeer = getRandomGradeBeer(Constant.AVERAGE_GRADE);
-                if (optBeer.isPresent())
-                    choice = optBeer.get().getKey();
-                else
-                    noAverage = true;
-            }
-            if(noAverage && noNeverTaste && noFav && noNotBad) {
-                Optional<Map.Entry<Beer, Integer>> optBeer = getRandomGradeBeer(Constant.HATE_GRADE);
-                if (optBeer.isPresent())
-                    choice = optBeer.get().getKey();
-                else
-                    throw new IllegalStateException("Cet étudiant n'a pas de liste de préférence");
-            }
-        }
-        System.out.println(choice.getName());
-        return choice;
+		//Choix possibles
+		int[] beerGrades = new int[] { Constant.LOVE_GRADE, Constant.NOT_BAD_GRADE, Constant.NEVER_TASTE_GRADE, Constant.AVERAGE_GRADE, Constant.HATE_GRADE };
+		
+		//Poids associés aux choix
+		double[] probs = new double[] { 85, 10, 4, 1, 1 };
+		
+		Beer beer = null;
+		//Implémentation approximative d'un Reservoir Sample
+		while(beer == null) {
+			int selected = beerGrades[0];
+			double total = probs[0];
+			for(int i = 1; i < probs.length; ++i) {
+				total += probs[i];
+				if(pic.random.nextDouble() <= (probs[i] / total)) selected = i;
+			}
+            beer = getRandomGradeBeer(beerGrades[selected]);
+		}
+        return beer;
     }
 
-    private Optional<Map.Entry<Beer,Integer>> getRandomGradeBeer(int grade) {
+    private Beer getRandomGradeBeer(int grade) {
         return beersGrade.entrySet()
-                .stream()
-                .filter(beerIntegerEntry -> beerIntegerEntry.getValue() == grade)
-                .findAny();
+            .stream()
+            .filter(beerIntegerEntry -> beerIntegerEntry.getValue() == grade)
+            .map(beerEntry -> beerEntry.getKey())
+            .findAny()
+            .orElse(null);
     }
 }

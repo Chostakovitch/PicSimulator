@@ -2,7 +2,7 @@ package Agent;
 
 import java.util.ArrayList;
 
-import Util.Beer;
+import Enum.Beer;
 import Util.Constant;
 
 /**

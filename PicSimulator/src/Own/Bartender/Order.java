@@ -1,7 +1,7 @@
 package Own.Bartender;
 
 import Agent.Student;
-import Util.Beer;
+import Enum.Beer;
 
 /**
  * Représente une commande, concernant un étudiant

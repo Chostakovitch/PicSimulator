@@ -1,4 +1,4 @@
-package Util;
+package Enum;
 
 public enum Beer {
     CidreLoicRaison("Cidre Loic Raison", 1.5),

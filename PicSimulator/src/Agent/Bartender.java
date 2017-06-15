@@ -9,10 +9,10 @@ import static State.BartenderState.WAITING_CHECKOUT;
 
 import java.util.Map;
 
+import Enum.Beer;
 import Model.Pic;
 import Own.Bartender.Order;
 import State.BartenderState;
-import Util.Beer;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.engine.Steppable;

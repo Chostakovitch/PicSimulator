@@ -1,6 +1,6 @@
 package Own.Student;
 
-import Util.Beer;
+import Enum.Beer;
 import Util.Constant;
 
 /**
