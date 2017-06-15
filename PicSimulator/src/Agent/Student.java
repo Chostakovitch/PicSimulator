@@ -145,28 +145,6 @@ public class Student implements Steppable {
      */
     private Integer alcoholSensitivityGrade;
 
-    public Student() {
-    	this(0);
-    }
-
-    /**
-     *
-     * @param money Argent au début de la simulation
-     */
-    public Student(int money) {
-        hasBeenInside = false;
-        walkCapacity = Constant.STUDENT_WALK_CAPACITY;
-        cup = new Drink();
-        payUTC = new PayUTCAccount();
-        //Par défaut, l'étudiant est dehors
-        studentState = OUTSIDE;
-        path = new ArrayList<>();
-        //TODO affiner la valeur
-        moneyCapacity = Constant.BANK_INITIAL_BALANCE;
-        bankAccount = new BankAccount(moneyCapacity);
-        veryPoor = false;
-    }
-
 	public Student(String[] dataLine) {
 		hasBeenInside = false;
 		walkCapacity = Constant.STUDENT_WALK_CAPACITY;
@@ -241,14 +219,11 @@ public class Student implements Steppable {
 	        	break;
 	        //L'étudiant ne fait rien, il prend une décision
 	        case NOTHING:
-	        	if(mustLeavePic()) {
-	        		setNewWalkTarget(pic, Constant.EXIT_POSITION);
-	        		studentState = WALKING_TO_EXIT;
-	        	}
+	        	if(mustLeavePic()) setNewWalkTarget(pic, Constant.EXIT_POSITION, WALKING_TO_EXIT);
 	        	//Choisit une file d'attente et initie un déplacement
 	        	else if(mustGetBeer()) chooseWaitingLine();
 	        	//Choisit une destination aléatoire
-	        	else if(mustWalk()) setNewWalkTarget(pic, pic.getRandomValidLocation());
+	        	else if(mustWalk()) setNewWalkTarget(pic, pic.getRandomValidLocation(), WALKING);
 	        	break;
 	        //L'étudiant marchait, il continue sa marche
 	        case WALKING: case WALKING_TO_WAITING_LINE: case WALKING_TO_EXIT:
@@ -320,13 +295,19 @@ public class Student implements Steppable {
      * Génère un chemin pour le déplacement de l'étudiant.
      * @param pic État de la simulation
      * @param finalPos Destination de l'étudiant.
+     * @param stateAfter État de l'étudiant s'il a trouvé un chemin, ne change pas sinon
+     * @return true si un chemin a été trouvé, false sinon
      */
-    private void setNewWalkTarget(Pic pic, Int2D finalPos)  {
+    private boolean setNewWalkTarget(Pic pic, Int2D finalPos, StudentState stateAfter)  {
 		//Position courante
     	Int2D currentPos = pic.getModel().getObjectLocation(this);
     	//Mise à jour du chemin à suivre
     	path = pic.getPath(currentPos, finalPos);
-    	studentState = WALKING;
+    	//L'étudiant peut se rendre à sa destination
+    	if(path.size() != 0)
+    		studentState = stateAfter;
+    	//Sinon, l'étudiant est bloqué pour X raisons (e.g. veut sortir d'une file d'attente mais bloqué derrière) : il retentera plus tard
+    	return path.size() != 0;
     }
     
     /**
@@ -338,7 +319,6 @@ public class Student implements Steppable {
     private void advancePath() {
     	//Position courante
     	Int2D currentPos = pic.getModel().getObjectLocation(this);
-    	
     	int i = walkCapacity;
     	Int2D finalPos = currentPos;
     	
@@ -447,8 +427,7 @@ public class Student implements Steppable {
 			.flatMap(List::stream)
 			.min((l, r) -> Integer.compare(l.getStudentNumber(), r.getStudentNumber()))
 			.get();
-		setNewWalkTarget(pic, pic.getModel().getObjectLocation(line));
-		studentState = WALKING_TO_WAITING_LINE;
+		setNewWalkTarget(pic, pic.getModel().getObjectLocation(line), WALKING_TO_WAITING_LINE);
 	}
 
 	/**
@@ -458,7 +437,6 @@ public class Student implements Steppable {
 		//On récupère la file d'attente
 		List<WaitingLine> lines = pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), WaitingLine.class);
 		if(lines.isEmpty()) throw new IllegalStateException("Aucune file d'attente sur la position courante!");
-		
 		//Si cette file existe, on entre dedans et on modifie l'état de l'étudiant
 		lines.get(0).enterLine(new Order(this, getOrder()));
 		studentState = WAITING_IN_QUEUE;

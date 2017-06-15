@@ -1,12 +1,7 @@
 package Util;
 
-import java.text.DateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import sim.util.Int2D;
 
@@ -15,7 +10,7 @@ import sim.util.Int2D;
  */
 public class Constant {
 
-    public static final int STUDENT_NUMBER = 50;
+    public static final int STUDENT_NUMBER = 300;
 	/**
      * Date de la simulation
      */
