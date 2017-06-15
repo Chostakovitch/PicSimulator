@@ -129,7 +129,7 @@ public class StudentParser {
         newLine[14] = testNumber(oldLine[18], "2", 0,10 );
 
         // Temps pour boire une bière
-        newLine[14] = testNumber(oldLine[19], "20", 0,120 );
+        newLine[15] = testNumber(oldLine[19], "20", 0,120 );
 
         // Heure d'arrivée
         if (oldLine[20].isEmpty()) newLine[16] = "20:00:00";
@@ -147,7 +147,9 @@ public class StudentParser {
         else newLine[19] = "Non";
 
         // Jours où l'étudiant vient au pic
-        newLine[20] = oldLine[24];
+        String[] jours = oldLine[24].split(",");
+        for (int i= 0; i < jours.length; i++) jours[i] = jours[i].toLowerCase();
+        newLine[20] = String.join(",", jours);
 
         // Sensibilité à l'alcool
         newLine[21] = testNumber(oldLine[25], "3", 0,5 );
