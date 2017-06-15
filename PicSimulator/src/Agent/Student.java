@@ -1,13 +1,6 @@
 package Agent;
 
-import static State.StudentState.NOTHING;
-import static State.StudentState.OUTSIDE;
-import static State.StudentState.POOR;
-import static State.StudentState.WAITING_FOR_BEER;
-import static State.StudentState.WAITING_IN_QUEUE;
-import static State.StudentState.WALKING;
-import static State.StudentState.WALKING_TO_EXIT;
-import static State.StudentState.WALKING_TO_WAITING_LINE;
+import static State.StudentState.*;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -26,6 +19,7 @@ import Own.Person.BankAccount;
 import Own.Person.PayUTCAccount;
 import Own.Student.Drink;
 import State.StudentState;
+import Util.Beer;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.engine.Steppable;
@@ -88,16 +82,60 @@ public class Student implements Steppable {
 	 */
 	private Pic pic;
 
+    /**
+     * Genre de l'étudiant (FEMALE, MALE)
+     */
 	private Gender gender;
+
+    /**
+     * Age de l'étudiant (entre 15 et 90 ans)
+     */
     private Integer age;
+
+    /**
+     * Type de semestre (Tronc commun, branche, master etc)
+     */
     private TypeSemestre type;
+
+    /**
+     * Type et numéro de semestre (exemple: GI04) -> Non pertinant par exemple pour les professeurs
+     */
     private String semester;
+
+    /**
+     * Liste de préférences des bières : Contiens la valeur de l'énumération de la bière correspondante
+     * ainsi qu'une notre associé (entre -5 et 5)
+     */
     private HashMap<Beer, Integer> beersGrade;
+
+    /**
+     * Nombre de bière que l'étudiant estime sont maximum
+     */
     private Integer beerMax;
+
+    /**
+     * Nombre de minutes que l'étudiant estime nécessaire pour boire une bière
+     */
     private Integer drinkingTime;
+
+    /**
+     * Heure à laquelle l'étudiant estime arriver au Pic en moyenne
+     */
     private LocalTime arrivalTime;
+
+    /**
+     * Heure à laquelle l'étudiant estime partir au Pic en moyenne
+     */
     private LocalTime departureTime;
-    private Boolean hasAte;
+
+    /**
+     * Valeur représentant ce que l'étudiant à mangé
+     */
+    private MealState mealState;
+
+    /**
+     * Sensibilité de l'étudiant à l'alcool (noté entre 1 et 5)
+     */
     private Integer alcoholSensitivityGrade;
 
     public Student() {
@@ -163,13 +201,18 @@ public class Student implements Steppable {
 
         //TODO réfléchir à une proba de mettre plus ou moins
         bankAccount = new BankAccount(Integer.parseInt(dataLine[18]));
-        hasAte = dataLine[19].equals("Non") ? false : true;
+        switch (dataLine[19]) {
+            case "repas": mealState= MealState.REPAS ; break;
+            case "menu": mealState= MealState.MENU; break;
+            case "snack": mealState= MealState.SNACK; break;
+            default: mealState= MealState.NO_MEAL;
+        }
         alcoholSensitivityGrade = Integer.parseInt(dataLine[21]);
     }
 
     @Override
     public void step(SimState state) {
-        pic = (Pic) state;
+        Pic pic = (Pic) state;
         //Quoiqu'il arrive, si l'étudiant a une bière, il peut la consommer avant de décider de son action
         if(!cup.isEmpty() && mustDrinkBeer()) {
         	cup.drink(Constant.STUDENT_SWALLOW_CAPACITY);
