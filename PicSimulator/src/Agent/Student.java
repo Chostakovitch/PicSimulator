@@ -8,6 +8,7 @@ import java.util.*;
 import Model.Pic;
 import Enum.Gender;
 import Enum.TypeSemestre;
+import Enum.MealState;
 import Own.Bartender.Order;
 import Own.Person.BankAccount;
 import Own.Person.PayUTCAccount;
@@ -118,9 +119,9 @@ public class Student implements Steppable {
     private LocalTime departureTime;
 
     /**
-     *
+     * Valeur représentant ce que l'étudiant à mangé
      */
-    private Boolean hasAte;
+    private MealState mealState;
 
     /**
      * Sensibilité de l'étudiant à l'alcool (noté entre 1 et 5)
@@ -189,7 +190,12 @@ public class Student implements Steppable {
         departureTime = LocalTime.of(Integer.parseInt(time[0]), Integer.parseInt(time[1]));
 
         bankAccount = new BankAccount(Integer.parseInt(dataLine[18]));
-        hasAte = dataLine[19].equals("Non") ? false : true;
+        switch (dataLine[19]) {
+            case "repas": mealState= MealState.REPAS ; break;
+            case "menu": mealState= MealState.MENU; break;
+            case "snack": mealState= MealState.SNACK; break;
+            default: mealState= MealState.NO_MEAL;
+        }
         alcoholSensitivityGrade = Integer.parseInt(dataLine[21]);
     }
 

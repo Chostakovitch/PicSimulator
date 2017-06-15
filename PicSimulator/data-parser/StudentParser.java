@@ -143,8 +143,16 @@ public class StudentParser {
         newLine[18] = testNumber(oldLine[22], "10", 0,100 );
 
         // L'étudiant as-il-mangé
-        if(oldLine[23].contains("Oui")) newLine[19] = "Oui";
-        else newLine[19] = "Non";
+        String res;
+        switch (oldLine[23]) {
+            case "Oui": res= "repas"; break;
+            case "Non, je mange un menu au Pic": res= "menu"; break;
+            case "Non, je mange des snacks au Pic": res= "snack"; break;
+            case "Non, manger c'est tricher":
+            case "Non, manger c'est triché": res= ""; break;
+            default: res= "";
+        }
+        newLine[19] = res;
 
         // Jours où l'étudiant vient au pic
         String[] jours = oldLine[24].split(",");
