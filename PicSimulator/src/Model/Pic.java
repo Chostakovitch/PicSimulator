@@ -349,7 +349,7 @@ public class Pic extends SimState {
     private void addAgentsStudent() {
     	for(int i = 0; i < Constant.STUDENT_NUMBER; ++i) {
     		// TODO: trier si l'agent doit être ajouté (selon ses jours de pic et les horraires ?)
-    		schedule.scheduleRepeating(new Student(dataPicker.getRandomLine()));
+    		schedule.scheduleRepeating(new Student(dataPicker.getRandomLine(Constant.DATE)));
     	}
     }
     

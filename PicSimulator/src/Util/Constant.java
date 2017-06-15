@@ -1,6 +1,10 @@
 package Util;
 
+import java.text.DateFormat;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Calendar;
+import java.util.Date;
 
 import sim.util.Int2D;
 
@@ -8,6 +12,11 @@ import sim.util.Int2D;
  * Constantes paramétrant la simulation et de l'affichage
  */
 public class Constant {
+
+    /**
+     * Date de la simulation
+     */
+    public static LocalDate DATE = LocalDate.of(2017, 03, 10);
 	/**
 	 * Largeur du Pic
 	 */
