@@ -6,10 +6,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,7 +44,6 @@ import sim.util.Int2D;
 public class Pic extends SimState {
 	private static final long serialVersionUID = 1L;
 	private SparseGrid2D pic = new SparseGrid2D(Constant.PIC_WIDTH, Constant.PIC_HEIGHT);
-	DataPicker dataPicker = new DataPicker();
     
 	/**
 	 * Horaire actuel du Pic
@@ -347,9 +348,16 @@ public class Pic extends SimState {
      * ajoutés qu'au scheduling et non à la grille.
      */
     private void addAgentsStudent() {
-    	for(int i = 0; i < Constant.STUDENT_NUMBER; ++i) {
-    		// TODO: trier si l'agent doit être ajouté (selon ses jours de pic et les horraires ?)
-    		schedule.scheduleRepeating(new Student(dataPicker.getRandomLineStudent()));
+    	int i = 0;
+    	String[] days;
+    	Locale locale = Locale.FRANCE;
+    	while (i < Constant.STUDENT_NUMBER) {
+    	    String[] line = DataPicker.getInstance().getRandomLineStudent();
+    	    days = line[20].replace(" ", "").split(",");
+    	    if (Arrays.asList(days).contains(Constant.DATE.getDayOfWeek().getDisplayName(TextStyle.FULL, locale)) || random.nextInt(11) > 8) {
+    	        schedule.scheduleRepeating(new Student(DataPicker.getInstance().getRandomLineStudent()));
+    	        i++;
+    	    }
     	}
     }
     

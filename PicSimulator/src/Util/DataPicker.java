@@ -1,13 +1,12 @@
 package Util;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.time.format.TextStyle;
-import java.util.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Created by aureliedigeon on 14/06/2017.
@@ -16,12 +15,18 @@ public class DataPicker {
     static List<String> studentsData;
     static HashMap<LocalDate, Integer> studentPerDay;
 
-    public DataPicker() {
+    private DataPicker() {
         initStudents();
         initStudentsPerDay();
     }
+    
+    private static DataPicker instance = new DataPicker();
+    
+    public static DataPicker getInstance() {
+    	return instance;
+    }
 
-    public void initStudents() {
+    private void initStudents() {
         BufferedReader reader;
         studentsData = new ArrayList<>();
         try {
@@ -36,7 +41,7 @@ public class DataPicker {
         }
     }
 
-    public void initStudentsPerDay() {
+    private void initStudentsPerDay() {
         BufferedReader reader;
         studentPerDay = new HashMap<>();
         try {
@@ -54,7 +59,7 @@ public class DataPicker {
         }
     }
 
-    public static String[] getRandomLineStudent() {
+    public String[] getRandomLineStudent() {
         Random r = new Random();
         String[] res;
         String randomLine = studentsData.get(r.nextInt(studentsData.size()));
@@ -62,7 +67,7 @@ public class DataPicker {
         return res;
     }
 
-    public static Integer getStudentPerDayOf(LocalDate date) {
+    public Integer getStudentPerDayOf(LocalDate date) {
         Integer studentsNumber = studentPerDay.get(date);
         if (studentsNumber == null) throw new IllegalArgumentException("Date non accepted");
         return studentsNumber;
