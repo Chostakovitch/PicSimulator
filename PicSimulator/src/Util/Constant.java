@@ -176,11 +176,6 @@ public class Constant {
     public static int TIMESTEP = 1;
     
     /**
-     * Nombre d'étudiants participant à la simulation (!= nombre d'étudiants dans le pic)
-     */
-    public static int STUDENT_NUMBER = 30;
-    
-    /**
      * Nombre d'euros par recharge, par défaut
      */
     public static int RECHARGE_AMOUNT = 5;
