@@ -6,7 +6,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -347,10 +349,17 @@ public class Pic extends SimState {
      * ajoutés qu'au scheduling et non à la grille.
      */
     private void addAgentsStudent() {
-    	for(int i = 0; i < Constant.STUDENT_NUMBER; ++i) {
-    		// TODO: trier si l'agent doit être ajouté (selon ses jours de pic et les horraires ?)
-    		schedule.scheduleRepeating(new Student(dataPicker.getRandomLineStudent(Constant.DATE)));
-    	}
+    	int i = 0;
+		String[] days;
+		Locale locale = Locale.FRANCE;
+    	while (i < Constant.STUDENT_NUMBER) {
+    		String[] line = dataPicker.getRandomLineStudent();
+			days = line[20].replace(" ", "").split(",");
+			if (Arrays.asList(days).contains(Constant.DATE.getDayOfWeek().getDisplayName(TextStyle.FULL, locale)) || random.nextInt(11) > 8) {
+				schedule.scheduleRepeating(new Student(dataPicker.getRandomLineStudent()));
+				i++;
+			}
+		}
     }
     
     /**

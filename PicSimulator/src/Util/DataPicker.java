@@ -38,7 +38,7 @@ public class DataPicker {
 
     public void initStudentsPerDay() {
         BufferedReader reader;
-        studentPerDay = new HashMap<LocalDate, Integer>();
+        studentPerDay = new HashMap<>();
         try {
             reader = new BufferedReader(new FileReader("resources/students_per_day.csv"));
             reader.readLine(); // Skip header
@@ -46,14 +46,6 @@ public class DataPicker {
             String[] data;
             while (line != null) {
                 data = line.split(",");
-                System.out.println("HHHH---------------------HHHH");
-                System.out.println(data[0]);
-                System.out.println(data[1]);
-                System.out.println("---------------------");
-                System.out.println(LocalDate.parse(data[0]));
-                System.out.println(Integer.parseInt(data[1]));
-                System.out.println("HHH---------------------HHH");
-
                 studentPerDay.put(LocalDate.parse(data[0]), Integer.parseInt(data[1]));
                 line = reader.readLine();
             }
@@ -62,16 +54,11 @@ public class DataPicker {
         }
     }
 
-    public static String[] getRandomLineStudent(LocalDate date) {
-        Locale locale = Locale.FRANCE;
+    public static String[] getRandomLineStudent() {
         Random r = new Random();
         String[] res;
-        String[] jours;
-        do {
-            String randomLine = studentsData.get(r.nextInt(studentsData.size()));
-            res = randomLine.split("\",\"");
-            jours = res[20].replace(" ", "").split(",");
-        } while (!Arrays.asList(jours).contains(date.getDayOfWeek().getDisplayName(TextStyle.FULL, locale)));
+        String randomLine = studentsData.get(r.nextInt(studentsData.size()));
+        res = randomLine.split("\",\"");
         return res;
     }
 
