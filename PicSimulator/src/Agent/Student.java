@@ -2,12 +2,8 @@ package Agent;
 
 import static State.StudentState.*;
 
-import java.time.Instant;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import Model.Pic;
 import Enum.Gender;
@@ -92,7 +88,7 @@ public class Student implements Steppable {
     }
 
     /**
-     * //TODO Utiliser cette méthode quand on aura les chiffres
+     *
      * @param money Argent au début de la simulation
      */
     public Student(int money) {
@@ -211,33 +207,33 @@ public class Student implements Steppable {
 	 * Renvoie le type de bière que l'étudiant veut
 	 * @return type de bière
 	 */
-	public Beer getOrder() {
+    private Beer getOrder() {
 		//TODO Surement un attribut / une liste des bières qu'un étudiant veut
-    	return Beer.BarbarBok;
+    	return choiceOrder();
 	}
 
 	/**
 	 * L'étudiant se fait servir
 	 */
-	public void serve() {
+	void serve() {
 		studentState = WAITING_FOR_BEER;
 	}
 
 	/**
 	 * Fin du service
 	 */
-	public void endServe() {
+	void endServe() {
 		studentState = NOTHING;
 	}
 	
 	/**
 	 * Préviens l'étudiant qu'il n'a pas assez d'argent sur son compte
 	 */
-	public void notEnoughMoney() {
+	void notEnoughMoney() {
 		studentState = POOR;
 	}
 	
-    public PayUTCAccount getPayUTC() {
+    PayUTCAccount getPayUTC() {
 		return payUTC;
 	}
 
@@ -334,8 +330,7 @@ public class Student implements Steppable {
      * @return true si l'étudiant doit aller chercher une bière
      */
     private boolean mustGetBeer() {
-    	if(!cup.isEmpty() || veryPoor) return false;
-    	return true;
+        return !(!cup.isEmpty() || veryPoor);
     }
     
     /**
@@ -362,8 +357,7 @@ public class Student implements Steppable {
      * @return Booléeen
      */
     private boolean mustDrinkBeer() {
-    	if(cup.isEmpty()) return false;
-    	return true;
+        return !cup.isEmpty();
     }
 
 	/**
@@ -402,4 +396,71 @@ public class Student implements Steppable {
 		lines.get(0).enterLine(new Order(this, getOrder()));
 		studentState = WAITING_IN_QUEUE;
 	}
+
+    /**
+     * Permet de retourner une bière, avec un plus grand % selon les préférences
+     * @return choix de la bière
+     */
+	private Beer choiceOrder() {
+	    Beer choice = null;
+	    boolean noFav = false;
+	    boolean noNotBad = false;
+	    boolean noNeverTaste = false;
+	    boolean noAverage = false;
+
+        /*
+         * Je ne pense pas que ce soit optimal mais j'ai pas eu d'autres idées
+         * En gros on random et si il a pas de bière dans la catégorie qu'il random et qu'il a fait toutes les catégories
+         * au dessus, il prend celle d'en dessous.
+         * Si il n'a pas encore fait les catégories au dessus, il re random
+         */
+        while(choice == null) {
+            System.out.println("Test ?");
+            double prob = Math.random();
+            if (prob < 0.85 && !noFav) {
+                Optional<Map.Entry<Beer, Integer>> optBeer = getRandomGradeBeer(Constant.LOVE_GRADE);
+                if (optBeer.isPresent())
+                    choice = optBeer.get().getKey();
+                else
+                    noFav = true;
+            }
+            if ((prob >= 0.85 && prob < 0.95 && !noNotBad) || (noFav && !noNotBad)) {
+                Optional<Map.Entry<Beer, Integer>> optBeer = getRandomGradeBeer(Constant.NOT_BAD_GRADE);
+                if (optBeer.isPresent())
+                    choice = optBeer.get().getKey();
+                else
+                    noNotBad = true;
+            }
+            if ((prob >= 0.95 && prob < 0.99 && !noNeverTaste) || (noFav && noNotBad && !noNeverTaste)) {
+                Optional<Map.Entry<Beer, Integer>> optBeer = getRandomGradeBeer(Constant.NEVER_TASTE_GRADE);
+                if (optBeer.isPresent())
+                    choice = optBeer.get().getKey();
+                else
+                    noNeverTaste = true;
+            }
+            if ((prob == 0.99 && !noAverage) || (noFav && noNotBad && noNeverTaste && !noAverage)) {
+                Optional<Map.Entry<Beer, Integer>> optBeer = getRandomGradeBeer(Constant.AVERAGE_GRADE);
+                if (optBeer.isPresent())
+                    choice = optBeer.get().getKey();
+                else
+                    noAverage = true;
+            }
+            if(noAverage && noNeverTaste && noFav && noNotBad) {
+                Optional<Map.Entry<Beer, Integer>> optBeer = getRandomGradeBeer(Constant.HATE_GRADE);
+                if (optBeer.isPresent())
+                    choice = optBeer.get().getKey();
+                else
+                    throw new IllegalStateException("Cet étudiant n'a pas de liste de préférence");
+            }
+        }
+        System.out.println(choice.getName());
+        return choice;
+    }
+
+    private Optional<Map.Entry<Beer,Integer>> getRandomGradeBeer(int grade) {
+        return beersGrade.entrySet()
+                .stream()
+                .filter(beerIntegerEntry -> beerIntegerEntry.getValue() == grade)
+                .findAny();
+    }
 }

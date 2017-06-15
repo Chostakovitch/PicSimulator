@@ -219,4 +219,13 @@ public class Constant {
      * Secondes que prend un permanencier pour utiliser la caisse
      */
     public static int BARTENDER_TIME_TO_CHECKOUT = 2;
+
+    /**
+     * Préférence des bières, de j'adore à je deteste.
+     */
+    public static int LOVE_GRADE = 5; //J'adore
+    public static int NOT_BAD_GRADE = 2; //ça va
+    public static int NEVER_TASTE_GRADE = 0; //Jamais gouté
+    public static int AVERAGE_GRADE = -2; //bof
+    public static int HATE_GRADE = -5; //je deteste
 }
