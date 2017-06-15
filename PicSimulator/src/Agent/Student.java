@@ -71,16 +71,60 @@ public class Student implements Steppable {
 	 */
 	private boolean veryPoor;
 
+    /**
+     * Genre de l'étudiant (FEMALE, MALE)
+     */
 	private Gender gender;
+
+    /**
+     * Age de l'étudiant (entre 15 et 90 ans)
+     */
     private Integer age;
+
+    /**
+     * Type de semestre (Tronc commun, branche, master etc)
+     */
     private TypeSemestre type;
+
+    /**
+     * Type et numéro de semestre (exemple: GI04) -> Non pertinant par exemple pour les professeurs
+     */
     private String semester;
+
+    /**
+     * Liste de préférences des bières : Contiens la valeur de l'énumération de la bière correspondante
+     * ainsi qu'une notre associé (entre -5 et 5)
+     */
     private HashMap<Beer, Integer> beersGrade;
+
+    /**
+     * Nombre de bière que l'étudiant estime sont maximum
+     */
     private Integer beerMax;
+
+    /**
+     * Nombre de minutes que l'étudiant estime nécessaire pour boire une bière
+     */
     private Integer drinkingTime;
+
+    /**
+     * Heure à laquelle l'étudiant estime arriver au Pic en moyenne
+     */
     private LocalTime arrivalTime;
+
+    /**
+     * Heure à laquelle l'étudiant estime partir au Pic en moyenne
+     */
     private LocalTime departureTime;
+
+    /**
+     *
+     */
     private Boolean hasAte;
+
+    /**
+     * Sensibilité de l'étudiant à l'alcool (noté entre 1 et 5)
+     */
     private Integer alcoholSensitivityGrade;
 
     public Student() {
@@ -415,7 +459,7 @@ public class Student implements Steppable {
          * Si il n'a pas encore fait les catégories au dessus, il re random
          */
         while(choice == null) {
-            System.out.println("Test ?");
+            // System.out.println("Test ?");
             double prob = Math.random();
             if (prob < 0.85 && !noFav) {
                 Optional<Map.Entry<Beer, Integer>> optBeer = getRandomGradeBeer(Constant.LOVE_GRADE);
@@ -453,7 +497,7 @@ public class Student implements Steppable {
                     throw new IllegalStateException("Cet étudiant n'a pas de liste de préférence");
             }
         }
-        System.out.println(choice.getName());
+        // System.out.println(choice.getName());
         return choice;
     }
 
