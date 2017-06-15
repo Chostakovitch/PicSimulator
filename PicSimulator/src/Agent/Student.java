@@ -1,6 +1,13 @@
 package Agent;
 
-import static State.StudentState.*;
+import static State.StudentState.NOTHING;
+import static State.StudentState.OUTSIDE;
+import static State.StudentState.POOR;
+import static State.StudentState.WAITING_FOR_BEER;
+import static State.StudentState.WAITING_IN_QUEUE;
+import static State.StudentState.WALKING;
+import static State.StudentState.WALKING_TO_EXIT;
+import static State.StudentState.WALKING_TO_WAITING_LINE;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -8,10 +15,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import Enum.Beer;
 import Enum.Gender;
+import Enum.MealState;
 import Enum.TypeSemestre;
 import Model.Pic;
 import Own.Bartender.Order;
@@ -19,7 +27,6 @@ import Own.Person.BankAccount;
 import Own.Person.PayUTCAccount;
 import Own.Student.Drink;
 import State.StudentState;
-import Util.Beer;
 import Util.Constant;
 import sim.engine.SimState;
 import sim.engine.Steppable;
@@ -199,20 +206,19 @@ public class Student implements Steppable {
         time = dataLine[17].split(":");
         departureTime = LocalTime.of(Integer.parseInt(time[0]), Integer.parseInt(time[1]));
 
-        //TODO réfléchir à une proba de mettre plus ou moins
         bankAccount = new BankAccount(Integer.parseInt(dataLine[18]));
         switch (dataLine[19]) {
-            case "repas": mealState= MealState.REPAS ; break;
-            case "menu": mealState= MealState.MENU; break;
-            case "snack": mealState= MealState.SNACK; break;
-            default: mealState= MealState.NO_MEAL;
-        }
+	        case "repas": mealState= MealState.REPAS ; break;
+	        case "menu": mealState= MealState.MENU; break;
+	        case "snack": mealState= MealState.SNACK; break;
+	        default: mealState= MealState.NO_MEAL;
+	    }
         alcoholSensitivityGrade = Integer.parseInt(dataLine[21]);
     }
 
     @Override
     public void step(SimState state) {
-        Pic pic = (Pic) state;
+        pic = (Pic) state;
         //Quoiqu'il arrive, si l'étudiant a une bière, il peut la consommer avant de décider de son action
         if(!cup.isEmpty() && mustDrinkBeer()) {
         	cup.drink(Constant.STUDENT_SWALLOW_CAPACITY);
@@ -472,7 +478,7 @@ public class Student implements Steppable {
 		Beer beer = null;
 		//Implémentation approximative d'un Reservoir Sample
 		while(beer == null) {
-			int selected = beerGrades[0];
+			int selected = 0;
 			double total = probs[0];
 			for(int i = 1; i < probs.length; ++i) {
 				total += probs[i];
@@ -484,11 +490,12 @@ public class Student implements Steppable {
     }
 
     private Beer getRandomGradeBeer(int grade) {
-        return beersGrade.entrySet()
+        List<Beer> beersWithGrade = beersGrade.entrySet()
             .stream()
             .filter(beerIntegerEntry -> beerIntegerEntry.getValue() == grade)
             .map(beerEntry -> beerEntry.getKey())
-            .findAny()
-            .orElse(null);
+            .collect(Collectors.toList());
+        if(beersWithGrade.size() == 0) return null;
+        return beersWithGrade.get(pic.random.nextInt(beersWithGrade.size()));
     }
 }

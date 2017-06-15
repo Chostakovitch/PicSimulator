@@ -15,7 +15,8 @@ import sim.util.Int2D;
  */
 public class Constant {
 
-    /**
+    public static final int STUDENT_NUMBER = 50;
+	/**
      * Date de la simulation
      */
     public static LocalDate DATE = LocalDate.of(2017, 03, 10);
