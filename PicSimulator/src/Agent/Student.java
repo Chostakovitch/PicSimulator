@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import Enum.Beer;
@@ -28,6 +27,7 @@ import Own.Person.PayUTCAccount;
 import Own.Student.Drink;
 import State.StudentState;
 import Util.Constant;
+import Util.DateTranslator;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
@@ -144,6 +144,11 @@ public class Student implements Steppable {
      * Sensibilité de l'étudiant à l'alcool (noté entre 1 et 5)
      */
     private Integer alcoholSensitivityGrade;
+    
+    /**
+	 * Jours favoris de l'étudiant pour aller boire
+	 */
+	private String[] preferedDays;
 
 	public Student(String[] dataLine) {
 		hasBeenInside = false;
@@ -192,6 +197,7 @@ public class Student implements Steppable {
 	        default: mealState= MealState.NO_MEAL;
 	    }
         alcoholSensitivityGrade = Integer.parseInt(dataLine[21]);
+        preferedDays = DateTranslator.translateArray(dataLine[20].split(","));
     }
 
     @Override

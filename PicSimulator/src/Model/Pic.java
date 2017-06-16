@@ -6,17 +6,14 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import Util.DataPicker;
 import org.threeten.extra.Interval;
 
 import Agent.BarCounter;
@@ -28,10 +25,12 @@ import Agent.Inanimate;
 import Agent.Student;
 import Agent.WaitingLine;
 import Agent.Wall;
+import Enum.Beer;
 import PathFinding.AStar;
 import PathFinding.Node;
-import Enum.Beer;
 import Util.Constant;
+import Util.DataPicker;
+import Util.DateTranslator;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
 import sim.util.Bag;
@@ -349,12 +348,22 @@ public class Pic extends SimState {
      */
     private void addAgentsStudent() {
     	int i = 0;
-    	String[] days;
-    	Locale locale = Locale.FRANCE;
+    	//On ajoute un nombre déterminé d'étudiants
     	while (i < Constant.STUDENT_NUMBER) {
     	    String[] line = DataPicker.getInstance().getRandomLineStudent();
-    	    days = line[20].replace(" ", "").split(",");
-    	    if (Arrays.asList(days).contains(Constant.DATE.getDayOfWeek().getDisplayName(TextStyle.FULL, locale)) || random.nextInt(11) > 8) {
+    	    //Probabilité d'aller au Pic de base
+    		double probability = 0.2;
+    		String[] preferedDays = DateTranslator.translateArray(line[20].split(","));
+    		//Si le jour courant est un de ses jours habituels, il a plus de chance d'y entrer
+			if(Arrays.asList(preferedDays).contains(Constant.DATE.getDayOfWeek())) {
+				probability = 0.75;
+			}
+			//Si en plus on est Vendredi, il a plus de chances d'aller se rincer
+			if(!Constant.DATE.getDayOfWeek().equals("FRIDAY")){
+				probability += random.nextDouble() * 0.3;
+			}
+    	    //S'il la probabilité lui permet de rentrer, il participe à la simulation
+    	    if(random.nextDouble() < probability) {
     	        schedule.scheduleRepeating(new Student(DataPicker.getInstance().getRandomLineStudent()));
     	        i++;
     	    }
