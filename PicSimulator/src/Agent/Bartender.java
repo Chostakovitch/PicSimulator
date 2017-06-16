@@ -65,6 +65,13 @@ public class Bartender implements Steppable {
     private int timeRefilling;
 
     /**
+     * Temps actuel pour fixer un fût.
+     * Quand il est en train de reparer le fût, descend de 1 à chaque tour
+     * Et quand il est à 0 on a fini de reparer on revient à Constant.BARTENDER_TIME_TO_FIXE_BARREL
+     */
+    private int timeFixingBarrel;
+
+    /**
      * Temps pour utiliser la caisse
      * Quand il est en train d'utiliser la caisse, descend de 1 à chaque tour
      * Et quand il est à 0 on a fini de remplir on revient à speedToUseCheckoutCounter
@@ -85,7 +92,7 @@ public class Bartender implements Steppable {
     /**
      * Action actuelle du bartender
      */
-    private BartenderState action;
+    private BartenderState bartenderState;
 
 
     public Bartender(WaitingLine wl, int speedServe, int speedRefill, int speedCheckoutCounter, Int2D pos) {
@@ -102,13 +109,15 @@ public class Bartender implements Steppable {
         speedToUseCheckoutCounter = speedCheckoutCounter;
         timeUsingCheckoutCounter = speedCheckoutCounter;
 
-        action = NOTHING;
+        timeFixingBarrel = Constant.BARTENDER_TIME_TO_FIXE_BARREL;
+
+        bartenderState = NOTHING;
     }
 
     @Override
     public void step(SimState state) {
         Pic pic = (Pic) state;
-        switch (action) {
+        switch (bartenderState) {
             case NOTHING:
                 if(!waitingLine.isEmpty()) {
                     takeOrder(pic);
@@ -120,7 +129,7 @@ public class Bartender implements Steppable {
                 //Le permanencier est le premier de la file, il peut utiliser la caisse
                 if (cc.isMyTurnToUse(this)) {
                     cc.useCounter(this);
-                    action = USING_CHECKOUT;
+                    bartenderState = USING_CHECKOUT;
                 }
                 break;
 
@@ -134,11 +143,25 @@ public class Bartender implements Steppable {
                     timeUsingCheckoutCounter--;
                 break;
 
+            case FIXING_BARREL:
+                if (timeFixingBarrel == 0) {
+                    timeFixingBarrel = Constant.BARTENDER_TIME_TO_FIXE_BARREL;
+                    barrelUsed.fixBarrel();
+                    if(barrelUsed.pullBeer(Constant.CUP_CAPACITY))
+                        bartenderState = USING_BARREL;
+                    else
+                        bartenderState = REFILLING_BARREL;
+                } else
+                    timeFixingBarrel--;
+                break;
+
             case WAITING_BARREL:
                 if (barrelUsed.isMyTurnToUse(this)) {
                     barrelUsed.useBarrel(this);
-                    action = USING_BARREL;
+                    bartenderState = USING_BARREL;
                 }
+                //TODO A chaque itération, vérifier qu'il est pas cassé, si il l'est aller voir l'étudiant, le rembourser
+                //TODO Et prendre sa nouvelle commande
                 break;
 
             case USING_BARREL:
@@ -156,7 +179,7 @@ public class Bartender implements Steppable {
                     performOrder(pic);
                     
                     timeServing = speedToServe;
-                    action = NOTHING;
+                    bartenderState = NOTHING;
                 }
                 //Toujours en train de servir
                 else 
@@ -166,7 +189,9 @@ public class Bartender implements Steppable {
             case REFILLING_BARREL:
                 if (timeRefilling == 0) {
                     timeRefilling = speedToRefill;
-                    action = USING_BARREL;
+                    bartenderState = USING_BARREL;
+                    barrelUsed.refill();
+                    barrelUsed.pullBeer(Constant.CUP_CAPACITY);
                 } else
                     timeRefilling--;
                 break;
@@ -189,12 +214,14 @@ public class Bartender implements Steppable {
             student.notEnoughMoney();
             currentOrder = null;
         } else {
+            //TODO Vérifier que le barrel n'est pas cassé, si il l'est prévenir l'étudiant et lui demander autre chose
+            //pic.getBarrel(currentOrder.getBeerType()).;
             CheckoutCounter cc = pic.getCheckoutCounter();
             if (cc.isMyTurnToUse(this)) {
                 cc.useCounter(this);
-                action = USING_CHECKOUT;
+                bartenderState = USING_CHECKOUT;
             } else {
-                action = WAITING_CHECKOUT;
+                bartenderState = WAITING_CHECKOUT;
                 cc.joinWaitingLine(this);
             }
             moveToCheckout(pic);
@@ -215,11 +242,11 @@ public class Bartender implements Steppable {
             if (barrelUsed.isMyTurnToUse(this)) {
                 barrelUsed.useBarrel(this);
                 if (!barrelUsed.pullBeer(Constant.CUP_CAPACITY))
-                    action = REFILLING_BARREL;
+                    bartenderState = REFILLING_BARREL;
                 else
-                    action = USING_BARREL;
+                    bartenderState = USING_BARREL;
             } else {
-                action = WAITING_BARREL;
+                bartenderState = WAITING_BARREL;
                 barrelUsed.joinWaitingLine(this);
             }
         } else {
@@ -240,5 +267,13 @@ public class Bartender implements Steppable {
         pic.getCheckoutCounter().getAccount().transfer(student.getPayUTC(), beer.getPrice());
         student.endServe();
         currentOrder = null;
+    }
+
+    /**
+     * Retourne l'action actuelle executée par le bartender
+     * @return state
+     */
+    public BartenderState getBartenderState() {
+        return bartenderState;
     }
 }

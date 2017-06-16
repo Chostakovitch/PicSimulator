@@ -27,5 +27,9 @@ public enum BartenderState {
 	/**
 	 * Remplissage d'un fût
 	 */
-	REFILLING_BARREL;
+	REFILLING_BARREL,
+	/**
+	 * Réparation d'un fût
+	 */
+	FIXING_BARREL;
 }

@@ -66,7 +66,7 @@ public class Pic extends SimState {
 
 	//TODO pourquoi ?
 	private HashMap<Barrel, Int2D> barrels;
-
+	
 	private CheckoutCounter cc;
 	
     public Pic(long seed) {

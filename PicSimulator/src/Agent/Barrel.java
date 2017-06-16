@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import Enum.Beer;
 import Util.Constant;
+import ec.util.MersenneTwisterFast;
 
 /**
  * Agent statique représentant un fût de bière.
@@ -13,6 +14,8 @@ public class Barrel implements Inanimate {
     private ArrayList<Bartender> waitingList;
 
     private Bartender usedBy;
+
+    private boolean isBroken;
 
     /**
      * Quantité actuelle du fût
@@ -29,6 +32,7 @@ public class Barrel implements Inanimate {
         actualQuantity = Constant.BARREL_CAPACITY;
         waitingList = new ArrayList<>();
         usedBy = null;
+        isBroken = false;
     }
 
     /**
@@ -89,9 +93,30 @@ public class Barrel implements Inanimate {
     }
 
     /**
+     * Retourne vrai si le fût est cassé et qu'il a besoin d'être reparé pour être utilisé
+     * @return isBroken
+     */
+    boolean isBarrelBroken() {
+        return isBroken;
+    }
+
+    void fixBarrel() {
+        isBroken = false;
+    }
+
+
+
+    /**
      * Fin de l'utilisation du fût
      */
     void endUseBarrel() {
         usedBy = null;
+        double proba = new MersenneTwisterFast().nextDouble();
+        if(proba < 0.01)
+            isBroken = true;
+    }
+
+    void refill() {
+        actualQuantity = Constant.BARREL_CAPACITY;
     }
 }
