@@ -358,9 +358,13 @@ public class Pic extends SimState {
 			if(Arrays.asList(preferedDays).contains(Constant.DATE.getDayOfWeek())) {
 				probability = 0.75;
 			}
+			//Si en plus on est Jeudi, il a plus de chances d'aller se rincer
+			if(!Constant.DATE.getDayOfWeek().equals("THURSDAY")){
+				probability += random.nextDouble() * 0.3;
+			}
 			//Si en plus on est Vendredi, il a plus de chances d'aller se rincer
 			if(!Constant.DATE.getDayOfWeek().equals("FRIDAY")){
-				probability += random.nextDouble() * 0.3;
+				probability += random.nextDouble() * 0.2;
 			}
     	    //S'il la probabilité lui permet de rentrer, il participe à la simulation
     	    if(random.nextDouble() < probability) {
