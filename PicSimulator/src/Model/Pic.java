@@ -351,7 +351,8 @@ public class Pic extends SimState {
     	int i = 0;
     	String[] days;
     	Locale locale = Locale.FRANCE;
-    	while (i < Constant.STUDENT_NUMBER) {
+    	int student_number = DataPicker.getInstance().getStudentPerDayOf(Constant.DATE);
+		while (i < student_number) {
     	    String[] line = DataPicker.getInstance().getRandomLineStudent();
     	    days = line[20].replace(" ", "").split(",");
     	    if (Arrays.asList(days).contains(Constant.DATE.getDayOfWeek().getDisplayName(TextStyle.FULL, locale)) || random.nextInt(11) > 8) {

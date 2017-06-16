@@ -10,7 +10,6 @@ import sim.util.Int2D;
  */
 public class Constant {
 
-    public static final int STUDENT_NUMBER = 300;
 	/**
      * Date de la simulation
      */
