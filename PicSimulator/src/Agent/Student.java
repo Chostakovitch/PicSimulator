@@ -1,19 +1,7 @@
 package Agent;
 
-import static State.StudentState.NOTHING;
-import static State.StudentState.OUTSIDE;
-import static State.StudentState.POOR;
-import static State.StudentState.WAITING_FOR_BEER;
-import static State.StudentState.WAITING_IN_QUEUE;
-import static State.StudentState.WALKING;
-import static State.StudentState.WALKING_TO_EXIT;
-import static State.StudentState.WALKING_TO_WAITING_LINE;
-
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import Enum.Beer;
@@ -31,6 +19,8 @@ import Util.DateTranslator;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
+
+import static State.StudentState.*;
 
 /**
  * Agent dynamique représentant un étudiant (pas nécessairement au sein du Pic).
@@ -161,6 +151,7 @@ public class Student implements Steppable {
 		cup = new Drink();
 		payUTC = new PayUTCAccount();
 		//Par défaut, l'étudiant est dehors
+		beerDrunk=0;
 		studentState = OUTSIDE;
 		path = new ArrayList<>();
 		veryPoor = false;
@@ -218,6 +209,11 @@ public class Student implements Steppable {
 	        //L'étudiant attend pour une bière, il n'a rien à faire
 	        case WAITING_FOR_BEER: case WAITING_IN_QUEUE:
 	        	return;
+			case DRINKING_WITH_FRIENDS:
+				//TODO Faire durer l'activité plus longtemps que juste pcq ils ont envie de boire ?
+				//TODO Pour l'instant quand sa bière est vide il revient à l'état vide pour prendre une décision
+				if(cup.isEmpty()) studentState = NOTHING;
+				break;
 	        //L'étudiant est en dehors du Pic, il prend une décision
 	        case OUTSIDE:
 	        	//L'étudiant arrive à l'entrée du Pic, il bouge immédiatement sur une position valide
@@ -329,7 +325,6 @@ public class Student implements Steppable {
      * Avance sur le chemin pré-déterminé par l'étudiant
      * et assigne l'état de l'étudiant en fonction de l'état du chemin. 
      * Si le déplacement est fini, positionne l'état de l'étudiant à NOTHING.
-     * @param pic État de la simulation
      */
     private void advancePath() {
     	//Position courante
@@ -357,9 +352,11 @@ public class Student implements Steppable {
             	pic.decStudentsInside();
             	studentState = OUTSIDE;
     		}
-    		//Sinon, il retourne à son état initial
     		else {
-    			studentState = NOTHING;
+    			if(veryPoor) //Si il est très pauvre, il va boucler sur vagabonder jusqu'à sortir du pic
+    				studentState = NOTHING;
+    			else //Sinon il se place pour boire
+    				studentState = DRINKING_WITH_FRIENDS;
     		}
     	}
     }
@@ -458,7 +455,6 @@ public class Student implements Steppable {
 	/**
 	 * Choisit une file d'attente sur laquelle s'insérer. La file choisie est 
 	 * celle contenant le moins d'étudiant au moment d'y entrer. Initie le déplacement.
-	 * @param pic Modèle de la simulation.
 	 */
 	private void chooseWaitingLine() {		
 		WaitingLine line = Arrays
@@ -511,7 +507,7 @@ public class Student implements Steppable {
         List<Beer> beersWithGrade = beersGrade.entrySet()
             .stream()
             .filter(beerIntegerEntry -> beerIntegerEntry.getValue() == grade)
-            .map(beerEntry -> beerEntry.getKey())
+            .map(Map.Entry::getKey)
             .collect(Collectors.toList());
         if(beersWithGrade.size() == 0) return null;
         return beersWithGrade.get(pic.random.nextInt(beersWithGrade.size()));

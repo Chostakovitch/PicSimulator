@@ -1,11 +1,5 @@
 package View;
 
-import static State.StudentState.POOR;
-import static State.StudentState.WAITING_FOR_BEER;
-import static State.StudentState.WAITING_IN_QUEUE;
-import static State.StudentState.WALKING_TO_EXIT;
-import static State.StudentState.WALKING_TO_WAITING_LINE;
-
 import java.awt.Color;
 import java.awt.Graphics2D;
 
@@ -13,6 +7,8 @@ import Agent.Student;
 import Model.Pic;
 import sim.engine.SimState;
 import sim.portrayal.DrawInfo2D;
+
+import static State.StudentState.*;
 
 /**
  * Implémentation des représentations avec mise à l'échelle pour les permanenciers.
@@ -47,24 +43,24 @@ public class StudentPortrayal extends ScalablePortrayal<Student> {
             //Largeur d'un éventuel cercle intérieur
         	int secondaryWidth = (int)(effectiveWidth / 3);
         	
-            //L'étudiant a une bière : cercle orange
-            if(!student.getCup().isEmpty()) {
-            	graphics.setColor(Color.orange);
+            //L'étudiant a une bière : cercle orange mais qu'il n'est pas arrêté pour la boire
+            if(!student.getCup().isEmpty() && student.getStudentState() != DRINKING_WITH_FRIENDS) {
+            	graphics.setColor(Color.ORANGE);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
             //L'étudiant s'en va : cercle vert
             else if(student.getStudentState() == WALKING_TO_EXIT) {
-            	graphics.setColor(Color.pink);
+            	graphics.setColor(Color.PINK);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
             //L'étudiant va chercher une bière : cercle bleu
             else if(student.getStudentState() == WALKING_TO_WAITING_LINE) {
-            	graphics.setColor(Color.blue);
+            	graphics.setColor(Color.BLUE);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
             //L'étudiant n'a plus assez d'argent : cercle rouge
             else if(student.isVeryPoor() || student.getStudentState() == POOR) {
-            	graphics.setColor(Color.red);
+            	graphics.setColor(Color.RED);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
             //L'étudiant attend d'être servi
@@ -72,6 +68,11 @@ public class StudentPortrayal extends ScalablePortrayal<Student> {
             	graphics.setColor(Color.YELLOW);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
+            //L'étudiant est en train de boir avec ses amis
+            else if(student.getStudentState() == DRINKING_WITH_FRIENDS) {
+				graphics.setColor(Color.MAGENTA);
+				graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
+			}
 		}
 	}
 }

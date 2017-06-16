@@ -45,7 +45,7 @@ public class Drink {
 
 	/**
 	 * Boit une gorgée de bière
-	 * @param quantity Centilitres bus par la gorgée
+	 * @param amount Centilitres bus par la gorgée
 	 * @throws IllegalStateException Si la bière ne contient pas assez de liquide
 	 */
 	public void drink(int amount) throws IllegalStateException {
