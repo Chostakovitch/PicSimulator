@@ -119,6 +119,11 @@ public class Student implements Steppable {
      * Nombre de bière que l'étudiant estime sont maximum
      */
     private Integer beerMax;
+    
+    /**
+     * Nombre de bière que l'étudiant a bu
+     */
+    private Integer beerDrunk;
 
     /**
      * Nombre de minutes que l'étudiant estime nécessaire pour boire une bière
@@ -289,6 +294,10 @@ public class Student implements Steppable {
 		return cup;
 	}
 
+	public void drinkBeer() {
+		++beerDrunk;
+	}
+	
 	public StudentState getStudentState() {
 		return studentState;
 	}
@@ -410,8 +419,33 @@ public class Student implements Steppable {
      * @return Booléeen
      */
     private boolean mustDrinkBeer() {
-        return !cup.isEmpty();
+        return !cup.isEmpty() && enoughTimeToDrink();
     }
+    
+    /**
+	 * Indique si l'etudiant a suffisamment de temps pour consommer le nombre de bieres qu'il a prevu
+	 * @return booleen
+	 */
+	private boolean enoughTimeToDrink() {
+		int time = drinkingTime * 60; 
+		float n = Constant.CUP_CAPACITY / Constant.STUDENT_SWALLOW_CAPACITY;
+		int beerLeft = beerMax - beerDrunk;
+		if(beerLeft > 0){
+			float logicalDepartureTime = Math.min(Constant.PIC_BEER_END.toSecondOfDay(), departureTime.toSecondOfDay());
+			float timeLeft = logicalDepartureTime - LocalTime.now().toSecondOfDay();
+			/* Une chance sur deux arbitrairement que l'etudiant decide de rester davantage */
+			if(Math.random() < 0.5)  timeLeft += Math.random() * (Constant.PIC_END.toSecondOfDay() - logicalDepartureTime);
+			timeLeft -= (beerLeft * drinkingTime * 60);
+			/* L'etudiant va boire plus rapidement */
+			if(timeLeft < 0){
+				time *= 0.8; 
+			}
+			else if(timeLeft > 0){
+				time *= 1.1;
+			}
+		}
+		return Math.random() <= (n * Math.max(beerLeft, 1)) / time;
+	}
 
 	/**
 	 * Permet à l'étudiant de recharger son compte

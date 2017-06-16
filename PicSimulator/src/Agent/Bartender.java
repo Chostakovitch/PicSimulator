@@ -236,6 +236,7 @@ public class Bartender implements Steppable {
     	Student student = currentOrder.getStudent();
     	Beer beer = currentOrder.getBeerType();
     	student.getCup().fillCup(beer);
+    	student.drinkBeer();
         pic.getCheckoutCounter().getAccount().transfer(student.getPayUTC(), beer.getPrice());
         student.endServe();
         currentOrder = null;
