@@ -6,14 +6,17 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import Util.DataPicker;
 import org.threeten.extra.Interval;
 
 import Agent.BarCounter;
@@ -356,8 +359,10 @@ public class Pic extends SimState {
      */
     private void addAgentsStudent() {
     	int i = 0;
-    	//On ajoute un nombre déterminé d'étudiants
-    	while (i < Constant.STUDENT_NUMBER) {
+    	String[] days;
+    	Locale locale = Locale.FRANCE;
+    	int student_number = DataPicker.getInstance().getStudentPerDayOf(Constant.DATE);
+		while (i < student_number) {
     	    String[] line = DataPicker.getInstance().getRandomLineStudent();
     	    //Probabilité d'aller au Pic de base
     		double probability = 0.2;
