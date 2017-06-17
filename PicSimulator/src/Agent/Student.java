@@ -16,10 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
-
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
 import Enum.Beer;
 import Enum.Gender;
@@ -37,7 +34,6 @@ import Util.Probability;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
-import sun.misc.Timeable;
 
 /**
  * Agent dynamique représentant un étudiant (pas nécessairement au sein du Pic).
@@ -236,8 +232,11 @@ public class Student implements Steppable {
         //Quoiqu'il arrive, si l'étudiant a une bière, il peut la consommer avant de décider de son action
         if(!cup.isEmpty() && mustDrinkBeer()) {
         	cup.drink(Constant.STUDENT_SWALLOW_CAPACITY);
+        	//S'il a fini sa bière, on incrémente le nombre de bières bues et on le place dans un état de décision
         	if(cup.isEmpty())
         		++beerDrunk;
+        		//Il va pas forcément abandonner ses potes parce qu'il a plus de bière quand même...
+        		if(studentState != DRINKING_WITH_FRIENDS) studentState = NOTHING;
         }
         
         //Décision en fonction de l'état de l'étudiant
@@ -246,9 +245,7 @@ public class Student implements Steppable {
 	        case WAITING_FOR_BEER: case WAITING_IN_QUEUE:
 	        	return;
 			case DRINKING_WITH_FRIENDS:
-				//TODO Faire durer l'activité plus longtemps que juste pcq ils ont envie de boire ?
-				//TODO Pour l'instant quand sa bière est vide il revient à l'état vide pour prendre une décision
-				if(cup.isEmpty()) studentState = NOTHING;
+				if(mustWalk()) setNewWalkTarget(pic.getRandomValidLocation(), NOTHING);
 				break;
 	        //L'étudiant est en dehors du Pic, il prend une décision
 	        case OUTSIDE:
@@ -294,11 +291,12 @@ public class Student implements Steppable {
 		            	pic.decStudentsInside();
 		            	studentState = OUTSIDE;
 		            	break;
+		            //S'il était juste en train de marcher, il va discuter avec des potos
 		    		default:
-		    			if(veryPoor) //Si il est très pauvre, il va boucler sur vagabonder jusqu'à sortir du pic
-		    				studentState = NOTHING;
-		    			else //Sinon il se place pour boire
+		    			if(pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), Student.class).size() > 1)
 		    				studentState = DRINKING_WITH_FRIENDS;
+		    			else
+		    				studentState = NOTHING;
 		    			break;
 	        		}
 	        	}
@@ -499,7 +497,16 @@ public class Student implements Steppable {
      */
     private boolean mustWalk() throws IllegalStateException {
     	if(studentState == OUTSIDE) throw new IllegalStateException("Student is not inside Pic");
-    	return Math.random() < 0.5;
+    	//On ne teste si l'étudiant doit faire un mouvement que toutes les 5 minutes
+    	if(pic.getMinutes() % 5 == 0) {
+    		double rand = pic.random.nextDouble();
+    		//S'il parle avec des amis
+    		if(studentState == StudentState.DRINKING_WITH_FRIENDS)
+    			return rand < Probability.STUDENT_WALK_WHEN_TALKING_WITH_FRIENDS;
+    		//S'il ne fait rien de particulier
+    		return rand < Probability.STUDENT_WALK_WHEN_NOTHING;
+    	}
+    	return false;
     }
     
     /**

@@ -50,7 +50,14 @@ public class StudentPortrayal extends ScalablePortrayal<Student> {
             	graphics.setColor(Color.ORANGE);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
-            //L'étudiant s'en va : cercle vert
+            //L'étudiant n'a plus assez d'argent : cercle rouge
+            else if(student.isVeryPoor() || studentState == POOR) {
+            	graphics.setColor(Color.RED);
+            	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
+            	//État supérieur aux autres
+            	return;
+            }
+            //L'étudiant s'en va : cercle rose
             else if(studentState == WALKING_TO_EXIT) {
             	graphics.setColor(Color.PINK);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
@@ -59,10 +66,9 @@ public class StudentPortrayal extends ScalablePortrayal<Student> {
             else if(studentState == WALKING_TO_WAITING_LINE || studentState == CHOOSING_WAITING_LINE) {
             	graphics.setColor(Color.BLUE);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-            }
-            //L'étudiant n'a plus assez d'argent : cercle rouge
-            else if(student.isVeryPoor() || studentState == POOR) {
-            	graphics.setColor(Color.RED);
+            } 
+            else if(studentState == StudentState.WALKING) {
+            	graphics.setColor(Color.BLACK);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
             //L'étudiant attend d'être servi

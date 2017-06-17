@@ -50,4 +50,14 @@ public class Probability {
 	 * Probabilité que l'étudiant parte quand l'heure est passée mais qu'il reste un peu comme un sagouin
 	 */
 	public static final double STUDENT_LEAVE_HOUR_PAST_BUT_ANYWAY = 0.7;
+	
+	/**
+	 * Probabilité que l'étudiant marche quand il ne fait rien
+	 */
+	public static final double STUDENT_WALK_WHEN_NOTHING = 0.9;
+	
+	/**
+	 * Probabilité que l'étudiant se barre alors qu'il parle avec des amis
+	 */
+	public static final double STUDENT_WALK_WHEN_TALKING_WITH_FRIENDS = 0.4;
 }
