@@ -64,6 +64,14 @@ public class Barrel implements Inanimate {
     }
 
     /**
+     * Permet à un bartender de sortir d'une file d'attente si il voit que le fût est cassé
+     * @param b bartender
+     */
+    void leaveWaitingLine(Bartender b) {
+        waitingList.remove(b);
+    }
+
+    /**
      * Le bartender devient "propriétaire" du barrel, personne d'autre ne peut l'utiliser
      * @param b permanencier
      */
@@ -75,6 +83,10 @@ public class Barrel implements Inanimate {
             if(!waitingList.isEmpty() && waitingList.get(0) == b)
                 waitingList.remove(b);
         }
+    }
+
+    public boolean isUsed() {
+        return usedBy != null;
     }
 
     /**

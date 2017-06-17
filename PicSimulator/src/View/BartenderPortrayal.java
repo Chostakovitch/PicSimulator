@@ -47,8 +47,12 @@ public class BartenderPortrayal extends ScalablePortrayal<Bartender> {
 				graphics.setColor(Color.PINK);
 				graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
 			}
-			else if(bartender.getBartenderState() == WAITING_BARREL ||bartender.getBartenderState() == USING_BARREL) {
+			else if(bartender.getBartenderState() == WAITING_BARREL) {
 				graphics.setColor(Color.BLUE);
+				graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
+			}
+			else if(bartender.getBartenderState() == USING_BARREL) {
+				graphics.setColor(Color.BLACK);
 				graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
 			}
 			else if(bartender.getBartenderState() == REFILLING_BARREL) {

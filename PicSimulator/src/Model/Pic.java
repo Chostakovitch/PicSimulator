@@ -8,13 +8,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoField;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import Util.DataPicker;
@@ -69,7 +63,7 @@ public class Pic extends SimState {
 	private int studentsInside;
 
 	//TODO pourquoi ?
-	private HashMap<Barrel, Int2D> barrels;
+	private List<Barrel> barrels;
 
 	private List<Barrel> unavailableBeer;
 
@@ -84,7 +78,7 @@ public class Pic extends SimState {
     	//On considère que la simulation commence à l'ouverture du Pic
     	time = timeslot.getStart();
 
-    	barrels = new HashMap<>();
+    	barrels = new ArrayList<>();
 		unavailableBeer = new ArrayList<>();
 		waitingLines = new ArrayList<>();
 		
@@ -202,9 +196,15 @@ public class Pic extends SimState {
     }
 
     public Map.Entry<Barrel, Int2D> getBarrel(Beer b) {
-    	Optional<Map.Entry<Barrel,Int2D>> optionalBarrel = barrels.entrySet().stream()
-				.filter(barrelInt2DEntry -> barrelInt2DEntry.getKey().getType() == b).findFirst();
-		return optionalBarrel.orElse(null);
+    	Optional<Barrel> optionalBarrel = barrels.stream()
+				.filter(barrelInt2DEntry -> barrelInt2DEntry.getType() == b).findFirst();
+
+    	if(optionalBarrel.isPresent()) {
+    		Barrel barrel = optionalBarrel.get();
+			return new AbstractMap.SimpleEntry<>(barrel, getModel().getObjectLocation(barrel));
+		}
+
+		return null;
 	}
     
     
@@ -372,7 +372,7 @@ public class Pic extends SimState {
 			Barrel b = new Barrel(beerList.get(i));
 			Int2D pos = Constant.BARREL_POSITIONS[i];
 			pic.setObjectLocation(b, pos.getX(), pos.getY());
-			barrels.put(b, pos);
+			barrels.add(b);
 		}
 	}
 

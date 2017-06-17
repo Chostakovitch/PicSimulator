@@ -47,6 +47,9 @@ public class BarrelPortrayal extends ScalablePortrayal<Barrel> {
 			else if(barrel.isEmpty()) {
 				paint = Color.BLUE;
 			}
+			else if(barrel.isUsed()) {
+				paint = Color.CYAN;
+			}
 			else {
 				paint = Color.YELLOW;
 			}

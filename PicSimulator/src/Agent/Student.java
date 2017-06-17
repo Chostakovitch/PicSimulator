@@ -363,7 +363,6 @@ public class Student implements Steppable {
 
 	/**
      * Génère un chemin pour le déplacement de l'étudiant.
-     * @param pic État de la simulation
      * @param finalPos Destination de l'étudiant.
      * @param stateAfter État de l'étudiant s'il a trouvé un chemin, ne change pas sinon
      * @return true si un chemin a été trouvé, false sinon
@@ -448,7 +447,7 @@ public class Student implements Steppable {
      * @return true si l'étudiant doit aller chercher une bière
      */
     private boolean mustGetBeer() {
-        return cup.isEmpty() && !veryPoor;
+        return !(!cup.isEmpty() || veryPoor || !pic.isBeerTime());
     }
     
     /**

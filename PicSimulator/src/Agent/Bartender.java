@@ -115,8 +115,8 @@ public class Bartender implements Steppable {
     public void step(SimState state) {
         Pic pic = (Pic) state;
         switch (bartenderState) {
-            case NOTHING: //TODO Voir pourquoi le premier permancier ne fait rien au début
-                if(!waitingLine.isEmpty()) {
+            case NOTHING:
+                if(!waitingLine.isEmpty() || currentOrder != null) {
                     takeOrder(pic);
                 }
                 break;
@@ -166,12 +166,11 @@ public class Bartender implements Steppable {
                 else {
                     if(barrelUsed.isBarrelBroken()) {
                         pic.getModel().setObjectLocation(this, initialPosition);
-                        currentOrder.changeOrder(currentOrder.getStudent().reorder( pic.getUnavailableBarrel()));
-                        moveToCheckout(pic);
+                        barrelUsed.leaveWaitingLine(this);
+                        barrelUsed = null;
+                        bartenderState = NOTHING;
                     }
                 }
-                //TODO A chaque itération, vérifier qu'il est pas cassé, si il l'est aller voir l'étudiant, le rembourser
-                //TODO Et prendre sa nouvelle commande
                 break;
 
             case USING_BARREL:
@@ -214,20 +213,26 @@ public class Bartender implements Steppable {
      * @param pic pic
      */
     private void takeOrder(Pic pic) {
-    	if(!pic.isBeerTime()) throw new IllegalStateException("Le Pic ne sert pas encore de bière!");
-        currentOrder = waitingLine.getNextOrder();
-        Student student = currentOrder.getStudent();
+//    	if(!pic.isBeerTime()) throw new IllegalStateException("Le Pic ne sert pas encore de bière!");
+        Student student;
+    	if(currentOrder == null) {
+            currentOrder = waitingLine.getNextOrder();
+            student = currentOrder.getStudent();
+            student.serve();
+        }
+        else
+            student = currentOrder.getStudent();
+
+        Barrel b = pic.getBarrel(currentOrder.getBeerType()).getKey();
+        if(pic.isBarrelBroken(b)) { //TODO || barrel.isGettingRefill() ?
+            currentOrder.changeOrder(student.reorder( pic.getUnavailableBarrel()));
+        }
         Beer beer = currentOrder.getBeerType();
-        student.serve();
         //On vérifie que l'étudiant a assez d'argent
         if(!student.getPayUTC().hasEnough(beer.getPrice())) {
             student.notEnoughMoney();
             currentOrder = null;
         } else {
-            Barrel b = pic.getBarrel(currentOrder.getBeerType()).getKey();
-            if(pic.isBarrelBroken(b)) { //TODO || barrel.isGettingRefill() ?
-                currentOrder.changeOrder(student.reorder( pic.getUnavailableBarrel()));
-            }
             moveToCheckout(pic);
         }
     }
