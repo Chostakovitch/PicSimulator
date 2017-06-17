@@ -7,6 +7,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -126,6 +127,34 @@ public class Pic extends SimState {
      */
     public boolean isBeerTime() {
     	return beerTimeslot.contains(time);
+    }
+    
+    /**
+     * Vérifie si l'instant actuel est compris entre deux heures relatives
+     * @param begin Heure locale de début
+     * @param end Heure locale de fin
+     * @return true si l'instant actuel est compris
+     */
+    public boolean isPicTimeWithin(LocalTime begin, LocalTime end) {
+    	Instant beginUTC = getUTCInstant(begin);
+    	Instant endUTC = getUTCInstant(end);
+    	Interval interval = Interval.of(beginUTC, endUTC);
+    	return interval.contains(time);
+    }
+    
+    /**
+     * Vérifie si l'heure relative demandée est comprise entre deux heures relatives
+     * @param begin Heure relative de début
+     * @param end Heure relative de fin
+     * @param instant Heure relative à opposer
+     * @return true si l'heure concernée est comprise
+     */
+    public boolean isTimeWithin(LocalTime begin, LocalTime end, LocalTime instant) {
+    	Instant beginUTC = getUTCInstant(begin);
+    	Instant endUTC = getUTCInstant(end);
+    	Instant instantUTC = getUTCInstant(instant);
+    	Interval interval = Interval.of(beginUTC, endUTC);
+    	return interval.contains(instantUTC);
     }
 
 	/**
@@ -360,6 +389,7 @@ public class Pic extends SimState {
     private void addAgentsStudent() {
     	int i = 0;
     	int student_number = DataPicker.getInstance().getStudentPerDayOf(Constant.DATE);
+    	System.out.println(student_number);
 		while (i < student_number) {
     	    String[] line = DataPicker.getInstance().getRandomLineStudent();
     	    //Probabilité d'aller au Pic de base
@@ -379,7 +409,7 @@ public class Pic extends SimState {
 			}
     	    //S'il la probabilité lui permet de rentrer, il participe à la simulation
     	    if(random.nextDouble() < probability) {
-    	        schedule.scheduleRepeating(new Student(DataPicker.getInstance().getRandomLineStudent()));
+    	        schedule.scheduleRepeating(new Student(DataPicker.getInstance().getRandomLineStudent(), this));
     	        i++;
     	    }
     	}
