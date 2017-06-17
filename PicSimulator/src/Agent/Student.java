@@ -512,4 +512,12 @@ public class Student implements Steppable {
         if(beersWithGrade.size() == 0) return null;
         return beersWithGrade.get(pic.random.nextInt(beersWithGrade.size()));
     }
+
+    Beer reorder(List<Beer> unavailableBeer) {
+		HashMap<Beer, Integer> savedGrade = new HashMap<>(beersGrade);
+		beersGrade.keySet().removeAll(unavailableBeer);
+		Beer choice = choiceOrder();
+		beersGrade = savedGrade;
+		return choice;
+	}
 }

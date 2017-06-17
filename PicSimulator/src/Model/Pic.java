@@ -66,7 +66,9 @@ public class Pic extends SimState {
 
 	//TODO pourquoi ?
 	private HashMap<Barrel, Int2D> barrels;
-	
+
+	private List<Barrel> unavailableBeer;
+
 	private CheckoutCounter cc;
 	
     public Pic(long seed) {
@@ -77,6 +79,8 @@ public class Pic extends SimState {
     	time = timeslot.getStart();
 
     	barrels = new HashMap<>();
+		unavailableBeer = new ArrayList<>();
+
     	
     	studentsInside = 0;
 
@@ -393,4 +397,20 @@ public class Pic extends SimState {
     	Instant instant = zonedTodayWithTime.toInstant();
     	return instant;
     }
+
+    public void addUnavailableBarrel(Barrel b) {
+    	unavailableBeer.add(b);
+	}
+
+	public void removeUnavailableBarrel(Barrel b) {
+    	unavailableBeer.remove(b);
+	}
+
+	public List<Beer> getUnavailableBarrel() {
+		return unavailableBeer.stream().map(Barrel::getType).collect(Collectors.toList());
+	}
+
+	public boolean isBarrelBroken(Barrel b) {
+    	return unavailableBeer.contains(b);
+	}
 }

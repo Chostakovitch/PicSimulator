@@ -30,4 +30,8 @@ public class Order {
 	public Beer getBeerType() {
 		return beerType;
 	}
+
+	public void changeOrder(Beer b) {
+		beerType = b;
+	}
 }

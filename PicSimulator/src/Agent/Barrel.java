@@ -96,8 +96,12 @@ public class Barrel implements Inanimate {
      * Retourne vrai si le fût est cassé et qu'il a besoin d'être reparé pour être utilisé
      * @return isBroken
      */
-    boolean isBarrelBroken() {
+    public boolean isBarrelBroken() {
         return isBroken;
+    }
+
+    public boolean isEmpty() {
+        return actualQuantity < Constant.CUP_CAPACITY;
     }
 
     void fixBarrel() {
