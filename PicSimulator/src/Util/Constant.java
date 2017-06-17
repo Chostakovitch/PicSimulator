@@ -192,7 +192,7 @@ public class Constant {
     /**
      * Distance à laquelle un étudiant peut se déplacer (au maximum) pendant une itération
      */
-    public static int STUDENT_WALK_CAPACITY = TIMESTEP;
+    public static int STUDENT_WALK_CAPACITY = 1;
     
     /**
      * Nombre de centilitres que l'étudiant boit par gorgée

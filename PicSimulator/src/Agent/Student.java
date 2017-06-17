@@ -218,10 +218,12 @@ public class Student implements Steppable {
 	        case OUTSIDE:
 	        	//L'étudiant arrive à l'entrée du Pic, il bouge immédiatement sur une position valide
 	        	if(mustEnterPic()) {
-	        		pic.getModel().setObjectLocation(this, Constant.PIC_ENTER);
-	            	pic.incrStudentsInside();
-	            	studentState = NOTHING;
-	            	hasBeenInside = true;
+	        		if(!pic.isLocationFull(Constant.PIC_ENTER)) {
+		        		pic.getModel().setObjectLocation(this, Constant.PIC_ENTER);
+		            	pic.incrStudentsInside();
+		            	studentState = NOTHING;
+		            	hasBeenInside = true;
+	        		}
 	        	}
 	        	break;
 	        //L'étudiant ne fait rien, il prend une décision
@@ -329,35 +331,44 @@ public class Student implements Steppable {
     private void advancePath() {
     	//Position courante
     	Int2D currentPos = pic.getModel().getObjectLocation(this);
+    	
     	int i = walkCapacity;
-    	Int2D finalPos = currentPos;
     	
-    	//Déplacement et mise à jour
-    	while(path.size() > 0 && i > 0) {
-    		finalPos = path.remove(0);
-    		--i;
-    	}
+    	//Nombre d'étudiants sur la case
+    	int studentsOnPos = pic.getEntitiesAtLocation(currentPos, Student.class).size();
     	
-    	pic.getModel().setObjectLocation(this, finalPos);
-    	
-    	//L'étudiant est arrivé à sa destination
-    	if(path.isEmpty()) {
-    		//S'il allait vers une file d'attente, il y rentre
-    		if(studentState == WALKING_TO_WAITING_LINE) {
-    			enterWaitingFile();
-    		}
-    		//L'étudiant est en train de sortir, on le supprime graphiquement
-    		else if(studentState == WALKING_TO_EXIT) {
-        		pic.getModel().remove(this);
-            	pic.decStudentsInside();
-            	studentState = OUTSIDE;
-    		}
-    		else {
-    			if(veryPoor) //Si il est très pauvre, il va boucler sur vagabonder jusqu'à sortir du pic
-    				studentState = NOTHING;
-    			else //Sinon il se place pour boire
-    				studentState = DRINKING_WITH_FRIENDS;
-    		}
+    	//Plus la case est remplie, moins les étudiants arrivent à se déplacer
+    	double prob = walkCapacity * (1.0 / studentsOnPos);
+    	if(pic.random.nextDouble() * walkCapacity < prob) {
+	    	Int2D finalPos = currentPos;
+	    	
+	    	//Déplacement et mise à jour
+	    	while(path.size() > 0 && i >= 1) {
+	    		finalPos = path.remove(0);
+	    		--i;
+	    	}
+	    	
+	    	pic.getModel().setObjectLocation(this, finalPos);
+	    	
+	    	//L'étudiant est arrivé à sa destination
+	    	if(path.isEmpty()) {
+	    		//S'il allait vers une file d'attente, il y rentre
+	    		if(studentState == WALKING_TO_WAITING_LINE) {
+	    			enterWaitingFile();
+	    		}
+	    		//L'étudiant est en train de sortir, on le supprime graphiquement
+	    		else if(studentState == WALKING_TO_EXIT) {
+	        		pic.getModel().remove(this);
+	            	pic.decStudentsInside();
+	            	studentState = OUTSIDE;
+	    		}
+	    		else {
+	    			if(veryPoor) //Si il est très pauvre, il va boucler sur vagabonder jusqu'à sortir du pic
+	    				studentState = NOTHING;
+	    			else //Sinon il se place pour boire
+	    				studentState = DRINKING_WITH_FRIENDS;
+	    		}
+	    	}
     	}
     }
     

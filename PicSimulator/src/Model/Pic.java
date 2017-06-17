@@ -149,6 +149,10 @@ public class Pic extends SimState {
     	return true;
     }
     
+    public boolean isLocationFull(Int2D pos) {
+    	return isLocationFull(pos.x, pos.y);
+    }
+    
     /**
      * Indique si une position est "remplie", c'est à dire si le nombre maximal d'étudiants sur une case est atteint
      * @param x Coordonnée en abscisses
