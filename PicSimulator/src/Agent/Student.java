@@ -389,19 +389,20 @@ public class Student implements Steppable {
      */
     private boolean mustEnterPic() throws IllegalStateException {
     	if(studentState != OUTSIDE) throw new IllegalStateException("Student is already inside Pic");
-    	//Cas où l'étudiant est déjà parti, modification de la probabilité de re-rentrer
-    	double factor = hasBeenInside ? Probability.STUDENT_REENTER_FACTOR : 1;
-    	//Cas où l'heure actuelle du pic est comprise dans les horaires classiques de l'étudiant
-    	if(pic.isPicTimeWithin(arrivalTime, departureTime)) 
-    		return pic.random.nextDouble() < Probability.STUDENT_ENTER_PIC_WITHIN_INTERVAL * factor;
+
+ 	   	/* On ne teste que toutes les 5 minutes pour éviter de saturer la proba
+ 	   	Si on est sur un nombre de minutes divisible par 5, on teste s'il peut rentrer */
+    	if((pic.getTime().getLong(ChronoField.INSTANT_SECONDS) / 60) % 5 == 0) {
+	    	//Cas où l'étudiant est déjà parti, modification de la probabilité de re-rentrer
+	    	double factor = hasBeenInside ? Probability.STUDENT_REENTER_FACTOR : 1;
+	    	
+	    	//Cas où l'heure actuelle du pic est comprise dans les horaires classiques de l'étudiant 
+	    	if(pic.isPicTimeWithin(arrivalTime, departureTime)) 
+	    		return pic.random.nextDouble() < Probability.STUDENT_ENTER_PIC_WITHIN_INTERVAL * factor;
     	
-    	/* Cas où il est en dehors de ses heures habituelles :
-    	   On ne teste que toutes les 10 minutes pour éviter de saturer la proba
-    	   Si on est sur un nombre de minutes divisible par 10, on teste s'il peut rentrer */
-    	if((pic.getTime().getLong(ChronoField.INSTANT_SECONDS) / 60) % 10 == 0) {
+    		//Cas où il est en dehors de ses heures habituelles :
     		return pic.random.nextDouble() < Probability.STUDENT_ENTER_PIC_OUTSIDE_INTERVAL * factor;
     	}
-    	
     	return false;
     }
     

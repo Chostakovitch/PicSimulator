@@ -9,7 +9,7 @@ public class Probability {
 	/**
 	 * Probabilité que l'étudiant vienne pendant l'intervalle où il se rend au Pic en général
 	 */
-	public static final double STUDENT_ENTER_PIC_WITHIN_INTERVAL = 0.9;
+	public static final double STUDENT_ENTER_PIC_WITHIN_INTERVAL = 0.7;
 	
 	/**
 	 * Probabilité que l'étudiant vienne en dehors de l'intervalle où il se rend au Pic en général 
