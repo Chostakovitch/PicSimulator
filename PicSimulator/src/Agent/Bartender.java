@@ -1,13 +1,8 @@
 package Agent;
 
-import static State.BartenderState.NOTHING;
-import static State.BartenderState.REFILLING_BARREL;
-import static State.BartenderState.USING_BARREL;
-import static State.BartenderState.USING_CHECKOUT;
-import static State.BartenderState.WAITING_BARREL;
-import static State.BartenderState.WAITING_CHECKOUT;
-
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import Enum.Beer;
 import Model.Pic;
@@ -17,6 +12,8 @@ import Util.Constant;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
+
+import static State.BartenderState.*;
 
 /**
  * Agent dynamique représentant un permanencier (serveur)
@@ -65,6 +62,13 @@ public class Bartender implements Steppable {
     private int timeRefilling;
 
     /**
+     * Temps actuel pour fixer un fût.
+     * Quand il est en train de reparer le fût, descend de 1 à chaque tour
+     * Et quand il est à 0 on a fini de reparer on revient à Constant.BARTENDER_TIME_TO_FIXE_BARREL
+     */
+    private int timeFixingBarrel;
+
+    /**
      * Temps pour utiliser la caisse
      * Quand il est en train d'utiliser la caisse, descend de 1 à chaque tour
      * Et quand il est à 0 on a fini de remplir on revient à speedToUseCheckoutCounter
@@ -85,7 +89,7 @@ public class Bartender implements Steppable {
     /**
      * Action actuelle du bartender
      */
-    private BartenderState action;
+    private BartenderState bartenderState;
 
 
     public Bartender(WaitingLine wl, int speedServe, int speedRefill, int speedCheckoutCounter, Int2D pos) {
@@ -102,14 +106,16 @@ public class Bartender implements Steppable {
         speedToUseCheckoutCounter = speedCheckoutCounter;
         timeUsingCheckoutCounter = speedCheckoutCounter;
 
-        action = NOTHING;
+        timeFixingBarrel = Constant.BARTENDER_TIME_TO_FIXE_BARREL;
+
+        bartenderState = NOTHING;
     }
 
     @Override
     public void step(SimState state) {
         Pic pic = (Pic) state;
-        switch (action) {
-            case NOTHING:
+        switch (bartenderState) {
+            case NOTHING: //TODO Voir pourquoi le premier permancier ne fait rien au début
                 if(!waitingLine.isEmpty()) {
                     takeOrder(pic);
                 }
@@ -120,7 +126,7 @@ public class Bartender implements Steppable {
                 //Le permanencier est le premier de la file, il peut utiliser la caisse
                 if (cc.isMyTurnToUse(this)) {
                     cc.useCounter(this);
-                    action = USING_CHECKOUT;
+                    bartenderState = USING_CHECKOUT;
                 }
                 break;
 
@@ -134,11 +140,38 @@ public class Bartender implements Steppable {
                     timeUsingCheckoutCounter--;
                 break;
 
+            case FIXING_BARREL:
+                if (timeFixingBarrel == 0) {
+                    timeFixingBarrel = Constant.BARTENDER_TIME_TO_FIXE_BARREL;
+                    barrelUsed.fixBarrel();
+                    pic.removeUnavailableBarrel(barrelUsed);
+                    if(barrelUsed.pullBeer(Constant.CUP_CAPACITY))
+                        bartenderState = USING_BARREL;
+                    else
+                        bartenderState = REFILLING_BARREL;
+                } else
+                    timeFixingBarrel--;
+                break;
+
             case WAITING_BARREL:
                 if (barrelUsed.isMyTurnToUse(this)) {
                     barrelUsed.useBarrel(this);
-                    action = USING_BARREL;
+                    if(barrelUsed.isBarrelBroken()) {
+                        pic.addUnavailableBarrel(barrelUsed);
+                        bartenderState = FIXING_BARREL;
+                    }
+                    else
+                        bartenderState = USING_BARREL;
                 }
+                else {
+                    if(barrelUsed.isBarrelBroken()) {
+                        pic.getModel().setObjectLocation(this, initialPosition);
+                        currentOrder.changeOrder(currentOrder.getStudent().reorder( pic.getUnavailableBarrel()));
+                        moveToCheckout(pic);
+                    }
+                }
+                //TODO A chaque itération, vérifier qu'il est pas cassé, si il l'est aller voir l'étudiant, le rembourser
+                //TODO Et prendre sa nouvelle commande
                 break;
 
             case USING_BARREL:
@@ -156,7 +189,7 @@ public class Bartender implements Steppable {
                     performOrder(pic);
                     
                     timeServing = speedToServe;
-                    action = NOTHING;
+                    bartenderState = NOTHING;
                 }
                 //Toujours en train de servir
                 else 
@@ -166,7 +199,9 @@ public class Bartender implements Steppable {
             case REFILLING_BARREL:
                 if (timeRefilling == 0) {
                     timeRefilling = speedToRefill;
-                    action = USING_BARREL;
+                    bartenderState = USING_BARREL;
+                    barrelUsed.refill();
+                    barrelUsed.pullBeer(Constant.CUP_CAPACITY);
                 } else
                     timeRefilling--;
                 break;
@@ -189,19 +224,23 @@ public class Bartender implements Steppable {
             student.notEnoughMoney();
             currentOrder = null;
         } else {
-            CheckoutCounter cc = pic.getCheckoutCounter();
-            if (cc.isMyTurnToUse(this)) {
-                cc.useCounter(this);
-                action = USING_CHECKOUT;
-            } else {
-                action = WAITING_CHECKOUT;
-                cc.joinWaitingLine(this);
+            Barrel b = pic.getBarrel(currentOrder.getBeerType()).getKey();
+            if(pic.isBarrelBroken(b)) { //TODO || barrel.isGettingRefill() ?
+                currentOrder.changeOrder(student.reorder( pic.getUnavailableBarrel()));
             }
             moveToCheckout(pic);
         }
     }
 
     private void moveToCheckout(Pic pic) {
+        CheckoutCounter cc = pic.getCheckoutCounter();
+        if (cc.isMyTurnToUse(this)) {
+            cc.useCounter(this);
+            bartenderState = USING_CHECKOUT;
+        } else {
+            bartenderState = WAITING_CHECKOUT;
+            cc.joinWaitingLine(this);
+        }
         Int2D checkoutLocation = pic.getCheckoutCounterLocation();
         pic.getModel().setObjectLocation(this, checkoutLocation.getX(), checkoutLocation.getY() + 1);
     }
@@ -214,12 +253,16 @@ public class Bartender implements Steppable {
             barrelUsed = entry.getKey();
             if (barrelUsed.isMyTurnToUse(this)) {
                 barrelUsed.useBarrel(this);
-                if (!barrelUsed.pullBeer(Constant.CUP_CAPACITY))
-                    action = REFILLING_BARREL;
+                if(barrelUsed.isBarrelBroken()) {
+                    pic.addUnavailableBarrel(barrelUsed);
+                    bartenderState = FIXING_BARREL;
+                }
+                else if (!barrelUsed.pullBeer(Constant.CUP_CAPACITY))
+                    bartenderState = REFILLING_BARREL;
                 else
-                    action = USING_BARREL;
+                    bartenderState = USING_BARREL;
             } else {
-                action = WAITING_BARREL;
+                bartenderState = WAITING_BARREL;
                 barrelUsed.joinWaitingLine(this);
             }
         } else {
@@ -236,8 +279,17 @@ public class Bartender implements Steppable {
     	Student student = currentOrder.getStudent();
     	Beer beer = currentOrder.getBeerType();
     	student.getCup().fillCup(beer);
+    	student.drinkBeer();
         pic.getCheckoutCounter().getAccount().transfer(student.getPayUTC(), beer.getPrice());
         student.endServe();
         currentOrder = null;
+    }
+
+    /**
+     * Retourne l'action actuelle executée par le bartender
+     * @return state
+     */
+    public BartenderState getBartenderState() {
+        return bartenderState;
     }
 }

@@ -40,6 +40,16 @@ public class BarrelPortrayal extends ScalablePortrayal<Barrel> {
 			Barrel barrel = (Barrel) object;
             //Largeur d'un éventuel cercle intérieur
         	int secondaryWidth = (int)(effectiveWidth / 3);
+
+			if(barrel.isBarrelBroken()) {
+				paint = Color.RED;
+			}
+			else if(barrel.isEmpty()) {
+				paint = Color.BLUE;
+			}
+			else {
+				paint = Color.YELLOW;
+			}
 		}
 	}
 }

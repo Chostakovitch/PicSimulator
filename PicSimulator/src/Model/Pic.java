@@ -28,10 +28,12 @@ import Agent.Inanimate;
 import Agent.Student;
 import Agent.WaitingLine;
 import Agent.Wall;
+import Enum.Beer;
 import PathFinding.AStar;
 import PathFinding.Node;
-import Enum.Beer;
 import Util.Constant;
+import Util.DataPicker;
+import Util.DateTranslator;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
 import sim.util.Bag;
@@ -68,6 +70,8 @@ public class Pic extends SimState {
 	//TODO pourquoi ?
 	private HashMap<Barrel, Int2D> barrels;
 
+	private List<Barrel> unavailableBeer;
+
 	private CheckoutCounter cc;
 	
     public Pic(long seed) {
@@ -78,6 +82,8 @@ public class Pic extends SimState {
     	time = timeslot.getStart();
 
     	barrels = new HashMap<>();
+		unavailableBeer = new ArrayList<>();
+
     	
     	studentsInside = 0;
 
@@ -354,8 +360,23 @@ public class Pic extends SimState {
     	int student_number = DataPicker.getInstance().getStudentPerDayOf(Constant.DATE);
 		while (i < student_number) {
     	    String[] line = DataPicker.getInstance().getRandomLineStudent();
-    	    days = line[20].replace(" ", "").split(",");
-    	    if (Arrays.asList(days).contains(Constant.DATE.getDayOfWeek().getDisplayName(TextStyle.FULL, locale)) || random.nextInt(11) > 8) {
+    	    //Probabilité d'aller au Pic de base
+    		double probability = 0.2;
+    		String[] preferedDays = DateTranslator.translateArray(line[20].split(","));
+    		//Si le jour courant est un de ses jours habituels, il a plus de chance d'y entrer
+			if(Arrays.asList(preferedDays).contains(Constant.DATE.getDayOfWeek())) {
+				probability = 0.75;
+			}
+			//Si en plus on est Jeudi, il a plus de chances d'aller se rincer
+			if(!Constant.DATE.getDayOfWeek().equals("THURSDAY")){
+				probability += random.nextDouble() * 0.3;
+			}
+			//Si en plus on est Vendredi, il a plus de chances d'aller se rincer
+			if(!Constant.DATE.getDayOfWeek().equals("FRIDAY")){
+				probability += random.nextDouble() * 0.2;
+			}
+    	    //S'il la probabilité lui permet de rentrer, il participe à la simulation
+    	    if(random.nextDouble() < probability) {
     	        schedule.scheduleRepeating(new Student(DataPicker.getInstance().getRandomLineStudent()));
     	        i++;
     	    }
@@ -381,4 +402,20 @@ public class Pic extends SimState {
     	Instant instant = zonedTodayWithTime.toInstant();
     	return instant;
     }
+
+    public void addUnavailableBarrel(Barrel b) {
+    	unavailableBeer.add(b);
+	}
+
+	public void removeUnavailableBarrel(Barrel b) {
+    	unavailableBeer.remove(b);
+	}
+
+	public List<Beer> getUnavailableBarrel() {
+		return unavailableBeer.stream().map(Barrel::getType).collect(Collectors.toList());
+	}
+
+	public boolean isBarrelBroken(Barrel b) {
+    	return unavailableBeer.contains(b);
+	}
 }

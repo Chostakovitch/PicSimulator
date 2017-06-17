@@ -35,5 +35,10 @@ public enum StudentState {
 	/**
 	 * L'étudiant n'est pas dans le Pic
 	 */
-	OUTSIDE;
+	OUTSIDE,
+	/**
+	 * L'étudiant boit sa bière sur place avec ses amis
+	 */
+	DRINKING_WITH_FRIENDS
+
 }

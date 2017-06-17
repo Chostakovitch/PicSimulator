@@ -65,7 +65,7 @@ public class Constant {
     /**
      * Capacité d'un fût de bière (en litres)
      */
-    public static int BARREL_CAPACITY = 30;
+    public static int BARREL_CAPACITY = 3000;
 
     /**
      * Position des fûts de bière
@@ -199,14 +199,19 @@ public class Constant {
     public static int STUDENT_SWALLOW_CAPACITY = 3;
     
     /**
-     * Secondes que prend un permanencier pour prendre une commande 
+     * Secondes que prend un permanencier pour servir
      */
     public static int BARTENDER_TIME_TO_SERVE = 5;
-    
+
     /**
-     * Secondes que prend un permanencier pour remplir un verre
+     * Temps pour réparer un fût
      */
-    public static int BARTENDER_TIME_TO_FILL = 3;
+    public static int BARTENDER_TIME_TO_FIXE_BARREL = 120;
+
+    /**
+     * Secondes que prend un permanencier pour reremplir un fût
+     */
+    public static int BARTENDER_TIME_TO_FILL = 30;
     
     /**
      * Secondes que prend un permanencier pour utiliser la caisse

@@ -1,20 +1,7 @@
 package Agent;
 
-import static State.StudentState.NOTHING;
-import static State.StudentState.OUTSIDE;
-import static State.StudentState.POOR;
-import static State.StudentState.WAITING_FOR_BEER;
-import static State.StudentState.WAITING_IN_QUEUE;
-import static State.StudentState.WALKING;
-import static State.StudentState.WALKING_TO_EXIT;
-import static State.StudentState.WALKING_TO_WAITING_LINE;
-
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import Enum.Beer;
@@ -28,9 +15,12 @@ import Own.Person.PayUTCAccount;
 import Own.Student.Drink;
 import State.StudentState;
 import Util.Constant;
+import Util.DateTranslator;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
+
+import static State.StudentState.*;
 
 /**
  * Agent dynamique représentant un étudiant (pas nécessairement au sein du Pic).
@@ -119,6 +109,11 @@ public class Student implements Steppable {
      * Nombre de bière que l'étudiant estime sont maximum
      */
     private Integer beerMax;
+    
+    /**
+     * Nombre de bière que l'étudiant a bu
+     */
+    private Integer beerDrunk;
 
     /**
      * Nombre de minutes que l'étudiant estime nécessaire pour boire une bière
@@ -144,6 +139,11 @@ public class Student implements Steppable {
      * Sensibilité de l'étudiant à l'alcool (noté entre 1 et 5)
      */
     private Integer alcoholSensitivityGrade;
+    
+    /**
+	 * Jours favoris de l'étudiant pour aller boire
+	 */
+	private String[] preferedDays;
 
 	public Student(String[] dataLine) {
 		hasBeenInside = false;
@@ -151,6 +151,7 @@ public class Student implements Steppable {
 		cup = new Drink();
 		payUTC = new PayUTCAccount();
 		//Par défaut, l'étudiant est dehors
+		beerDrunk=0;
 		studentState = OUTSIDE;
 		path = new ArrayList<>();
 		veryPoor = false;
@@ -192,6 +193,7 @@ public class Student implements Steppable {
 	        default: mealState= MealState.NO_MEAL;
 	    }
         alcoholSensitivityGrade = Integer.parseInt(dataLine[21]);
+        preferedDays = DateTranslator.translateArray(dataLine[20].split(","));
     }
 
     @Override
@@ -207,6 +209,11 @@ public class Student implements Steppable {
 	        //L'étudiant attend pour une bière, il n'a rien à faire
 	        case WAITING_FOR_BEER: case WAITING_IN_QUEUE:
 	        	return;
+			case DRINKING_WITH_FRIENDS:
+				//TODO Faire durer l'activité plus longtemps que juste pcq ils ont envie de boire ?
+				//TODO Pour l'instant quand sa bière est vide il revient à l'état vide pour prendre une décision
+				if(cup.isEmpty()) studentState = NOTHING;
+				break;
 	        //L'étudiant est en dehors du Pic, il prend une décision
 	        case OUTSIDE:
 	        	//L'étudiant arrive à l'entrée du Pic, il bouge immédiatement sur une position valide
@@ -283,6 +290,10 @@ public class Student implements Steppable {
 		return cup;
 	}
 
+	public void drinkBeer() {
+		++beerDrunk;
+	}
+	
 	public StudentState getStudentState() {
 		return studentState;
 	}
@@ -314,7 +325,6 @@ public class Student implements Steppable {
      * Avance sur le chemin pré-déterminé par l'étudiant
      * et assigne l'état de l'étudiant en fonction de l'état du chemin. 
      * Si le déplacement est fini, positionne l'état de l'étudiant à NOTHING.
-     * @param pic État de la simulation
      */
     private void advancePath() {
     	//Position courante
@@ -342,9 +352,11 @@ public class Student implements Steppable {
             	pic.decStudentsInside();
             	studentState = OUTSIDE;
     		}
-    		//Sinon, il retourne à son état initial
     		else {
-    			studentState = NOTHING;
+    			if(veryPoor) //Si il est très pauvre, il va boucler sur vagabonder jusqu'à sortir du pic
+    				studentState = NOTHING;
+    			else //Sinon il se place pour boire
+    				studentState = DRINKING_WITH_FRIENDS;
     		}
     	}
     }
@@ -404,8 +416,33 @@ public class Student implements Steppable {
      * @return Booléeen
      */
     private boolean mustDrinkBeer() {
-        return !cup.isEmpty();
+        return !cup.isEmpty() && enoughTimeToDrink();
     }
+    
+    /**
+	 * Indique si l'etudiant a suffisamment de temps pour consommer le nombre de bieres qu'il a prevu
+	 * @return booleen
+	 */
+	private boolean enoughTimeToDrink() {
+		int time = drinkingTime * 60; 
+		float n = Constant.CUP_CAPACITY / Constant.STUDENT_SWALLOW_CAPACITY;
+		int beerLeft = beerMax - beerDrunk;
+		if(beerLeft > 0){
+			float logicalDepartureTime = Math.min(Constant.PIC_BEER_END.toSecondOfDay(), departureTime.toSecondOfDay());
+			float timeLeft = logicalDepartureTime - LocalTime.now().toSecondOfDay();
+			/* Une chance sur deux arbitrairement que l'etudiant decide de rester davantage */
+			if(Math.random() < 0.5)  timeLeft += Math.random() * (Constant.PIC_END.toSecondOfDay() - logicalDepartureTime);
+			timeLeft -= (beerLeft * drinkingTime * 60);
+			/* L'etudiant va boire plus rapidement */
+			if(timeLeft < 0){
+				time *= 0.8; 
+			}
+			else if(timeLeft > 0){
+				time *= 1.1;
+			}
+		}
+		return Math.random() <= (n * Math.max(beerLeft, 1)) / time;
+	}
 
 	/**
 	 * Permet à l'étudiant de recharger son compte
@@ -418,7 +455,6 @@ public class Student implements Steppable {
 	/**
 	 * Choisit une file d'attente sur laquelle s'insérer. La file choisie est 
 	 * celle contenant le moins d'étudiant au moment d'y entrer. Initie le déplacement.
-	 * @param pic Modèle de la simulation.
 	 */
 	private void chooseWaitingLine() {		
 		WaitingLine line = Arrays
@@ -471,9 +507,17 @@ public class Student implements Steppable {
         List<Beer> beersWithGrade = beersGrade.entrySet()
             .stream()
             .filter(beerIntegerEntry -> beerIntegerEntry.getValue() == grade)
-            .map(beerEntry -> beerEntry.getKey())
+            .map(Map.Entry::getKey)
             .collect(Collectors.toList());
         if(beersWithGrade.size() == 0) return null;
         return beersWithGrade.get(pic.random.nextInt(beersWithGrade.size()));
     }
+
+    Beer reorder(List<Beer> unavailableBeer) {
+		HashMap<Beer, Integer> savedGrade = new HashMap<>(beersGrade);
+		beersGrade.keySet().removeAll(unavailableBeer);
+		Beer choice = choiceOrder();
+		beersGrade = savedGrade;
+		return choice;
+	}
 }
