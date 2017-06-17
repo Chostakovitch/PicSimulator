@@ -341,6 +341,8 @@ public class Student implements Steppable {
 	 */
 	void endServe() {
 		studentState = NOTHING;
+		//Si l'étudiant prend une bière de plus, on augmente son quota
+		if(beerDrunk == beerMax) ++beerMax;
 	}
 	
 	/**
@@ -420,18 +422,23 @@ public class Student implements Steppable {
      */
     private boolean mustEnterPic() throws IllegalStateException {
     	if(studentState != OUTSIDE) throw new IllegalStateException("Student is already inside Pic");
- 	   	/* On ne teste que toutes les 5 minutes pour éviter de saturer la proba
- 	   	Si on est sur un nombre de minutes divisible par 5, on teste s'il peut rentrer */
-    	if(pic.getMinutes() % 5 == 0) {
+ 	   	//On ne teste que toutes les 10 minutes pour éviter de saturer la proba
+    	if(pic.getMinutes() % 10 == 0) {
 	    	//Cas où l'étudiant est déjà parti, modification de la probabilité de re-rentrer
-	    	double factor = hasBeenInside ? Probability.STUDENT_REENTER_FACTOR : 1;
+	    	double factor = 1;
+	    	if(hasBeenInside) {
+	    		factor = Probability.STUDENT_REENTER_FACTOR;
+	    		if(veryPoor)
+	    			factor = Probability.STUDENT_REENTER_POOR_FACTOR;
+	    	}
+	    	double rand = pic.random.nextDouble();
 	    	
 	    	//Cas où l'heure actuelle du pic est comprise dans les horaires classiques de l'étudiant 
 	    	if(pic.isPicTimeWithin(arrivalTime, departureTime)) 
-	    		return pic.random.nextDouble() < Probability.STUDENT_ENTER_PIC_WITHIN_INTERVAL * factor;
+	    		return rand < Probability.STUDENT_ENTER_PIC_WITHIN_INTERVAL * factor;
     	
     		//Cas où il est en dehors de ses heures habituelles :
-    		return pic.random.nextDouble() < Probability.STUDENT_ENTER_PIC_OUTSIDE_INTERVAL * factor;
+    		return rand < Probability.STUDENT_ENTER_PIC_OUTSIDE_INTERVAL * factor;
     	}
     	return false;
     }
@@ -442,8 +449,30 @@ public class Student implements Steppable {
      * @throws IllegalStateException si l'étudiant n'est pas dans le Pic
      */
     private boolean mustLeavePic() throws IllegalStateException {
+    	//if(true) return false;
     	if(studentState == OUTSIDE) throw new IllegalStateException("Student is not inside Pic");
-    	return cup.isEmpty() && Math.random() < 0.2;    	
+    	//On ne teste que toutes les 10 minutes pour éviter de saturer la proba
+    	if(pic.getMinutes() % 10 == 0) {
+        	//L'étudiant ne part que s'il a fini sa bière
+	    	if(cup.isEmpty()) {
+	    		double rand = pic.random.nextDouble();
+	    		//S'il est temps de partir
+	    		if(departureTime.toSecondOfDay() <= pic.getTime().toSecondOfDay()) {
+	    			//Si l'étudiant a prévu de rester plus tard
+	    			if(willStayLater) 
+	    				return rand < Probability.STUDENT_LEAVE_HOUR_PAST_BUT_ANYWAY;
+	    			//Sinon, s'il a prévu de partir à l'heure
+	    			return rand < Probability.STUDENT_LEAVE_HOUR_PAST;
+	    		}
+	    		//S'il est pauvre, il a une chance de partir
+	    		if(veryPoor) 
+	    			return rand < Probability.STUDENT_LEAVE_POOR;
+	    		//S'il a consommé son quota, il a une chance de partir
+	    		if(beerDrunk >= beerMax)
+	    			return rand < Probability.STUDENT_LEAVE_NO_MORE_DRINK;
+	    	}
+    	}
+    	return false;
     }
     
     /**
@@ -510,7 +539,7 @@ public class Student implements Steppable {
 		if(willStayLater) 
 			timeLeft += pic.random.nextDouble() * (Constant.PIC_END.toSecondOfDay() - logicalDepartureTime);
 		
-		/* On cherche ici à faire tendre la fin de sa consommation de bières à l'heure à
+		/* On cherche ici à faire tendre la fin de sa consommation de bière à l'heure à
 		 * laquelle il part ou à l'heure à laquelle on ne sert plus de rien, en pondérant 
 		 * par rapport à la vitesse à laquelle il boit sa bière. Plus il a de temps,
 		 * plus il boit lentement.

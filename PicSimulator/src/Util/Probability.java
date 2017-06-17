@@ -19,10 +19,35 @@ public class Probability {
 	/**
 	 * Facteur pour les probabilités que l'étudiant rerentre dans le Pic une fois parti
 	 */
-	public static final double STUDENT_REENTER_FACTOR = 0.001;
+	public static final double STUDENT_REENTER_FACTOR = 0.01;
+	
+	/**
+	 * Facteur pour les probabilités que l'étudiant rerentre dans le Pic une fois parti et pauvre
+	 */
+	public static final double STUDENT_REENTER_POOR_FACTOR = STUDENT_REENTER_FACTOR / 10;
 	
 	/**
 	 * Probabilité que l'étudiant reste plus tard que prévu au Pic
 	 */
 	public static final double STUDENT_STAY_LATER = 0.2;
+	
+	/**
+	 * Probabilité que l'étudiant parte quand il est pauvre
+	 */
+	public static final double STUDENT_LEAVE_POOR = 0.7;
+	
+	/**
+	 * Probabilité que l'étudiant parte quand il a fini de boire
+	 */
+	public static final double STUDENT_LEAVE_NO_MORE_DRINK = 0.3;
+	
+	/**
+	 * Probabilité que l'étudiant parte quand l'heure à laquelle il devait partir est passée
+	 */
+	public static final double STUDENT_LEAVE_HOUR_PAST = 0.9;
+	
+	/**
+	 * Probabilité que l'étudiant parte quand l'heure est passée mais qu'il reste un peu comme un sagouin
+	 */
+	public static final double STUDENT_LEAVE_HOUR_PAST_BUT_ANYWAY = 0.7;
 }
