@@ -75,6 +75,8 @@ public class Pic extends SimState {
 
 	private CheckoutCounter cc;
 	
+	private List<WaitingLine> waitingLines;
+	
     public Pic(long seed) {
     	super(seed);
     	timeslot = Interval.of(getUTCInstant(Constant.PIC_BEGIN), getUTCInstant(Constant.PIC_END));
@@ -84,10 +86,9 @@ public class Pic extends SimState {
 
     	barrels = new HashMap<>();
 		unavailableBeer = new ArrayList<>();
-
-    	
+		waitingLines = new ArrayList<>();
+		
     	studentsInside = 0;
-
 		cc = new CheckoutCounter();
     }
 
@@ -286,7 +287,19 @@ public class Pic extends SimState {
     	return studentsInside;
     }
     
-    /**
+    public long getSeconds() {
+    	return time.getLong(ChronoField.INSTANT_SECONDS);
+    }
+    
+    public long getMinutes() {
+    	return getSeconds() / 60;
+    }
+    
+    public List<WaitingLine> getWaitingLines() {
+		return waitingLines;
+	}
+
+	/**
      * Détermine les entités d'un type T à une position donnée
      * @param pos Position où chercher
      * @param type Type à chercher
@@ -371,6 +384,7 @@ public class Pic extends SimState {
 			Int2D posBart = Constant.BARTENDER_POSITIONS[i];
 			Int2D posWait = Constant.WAITING_LINES_POSITIONS[i];
 			WaitingLine w = new WaitingLine();
+			waitingLines.add(w);
 			Bartender b = new Bartender(w, Constant.BARTENDER_TIME_TO_SERVE, Constant.BARTENDER_TIME_TO_FILL, Constant.BARTENDER_TIME_TO_CHECKOUT, posBart);
 			schedule.scheduleRepeating(b);
 			pic.setObjectLocation(b, posBart.getX(), posBart.getY());
@@ -389,7 +403,6 @@ public class Pic extends SimState {
     private void addAgentsStudent() {
     	int i = 0;
     	int student_number = DataPicker.getInstance().getStudentPerDayOf(Constant.DATE);
-    	System.out.println(student_number);
 		while (i < student_number) {
     	    String[] line = DataPicker.getInstance().getRandomLineStudent();
     	    //Probabilité d'aller au Pic de base

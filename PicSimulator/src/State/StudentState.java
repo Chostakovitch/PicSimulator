@@ -21,9 +21,13 @@ public enum StudentState {
 	 */
 	WALKING,
 	/**
-	 * L'étudiant se déplace vers une file d'attente
+	 * L'étudiant se déplace vers la file d'attente LA PLUS VIDE
 	 */
 	WALKING_TO_WAITING_LINE,
+	/**
+	 * L'étudiant se déplace vers une file d'attente quelconque en attendant de choisir la plus vide
+	 */
+	CHOOSING_WAITING_LINE,
 	/**
 	 * L'étudiant se dirige vers la sortie
 	 */

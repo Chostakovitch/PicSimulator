@@ -1,9 +1,25 @@
 package Agent;
 
+import static State.StudentState.CHOOSING_WAITING_LINE;
+import static State.StudentState.DRINKING_WITH_FRIENDS;
+import static State.StudentState.NOTHING;
+import static State.StudentState.OUTSIDE;
+import static State.StudentState.POOR;
+import static State.StudentState.WAITING_FOR_BEER;
+import static State.StudentState.WAITING_IN_QUEUE;
+import static State.StudentState.WALKING;
+import static State.StudentState.WALKING_TO_EXIT;
+import static State.StudentState.WALKING_TO_WAITING_LINE;
+
 import java.time.LocalTime;
-import java.time.temporal.ChronoField;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
 import Enum.Beer;
 import Enum.Gender;
@@ -21,8 +37,6 @@ import Util.Probability;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
-
-import static State.StudentState.*;
 
 /**
  * Agent dynamique représentant un étudiant (pas nécessairement au sein du Pic).
@@ -152,7 +166,6 @@ public class Student implements Steppable {
 		hasBeenInside = false;
 		walkCapacity = Constant.STUDENT_WALK_CAPACITY;
 		cup = new Drink();
-		payUTC = new PayUTCAccount();
 		//Par défaut, l'étudiant est dehors
 		beerDrunk=0;
 		studentState = OUTSIDE;
@@ -195,7 +208,11 @@ public class Student implements Steppable {
         if(!pic.isTimeWithin(Constant.PIC_BEGIN, Constant.PIC_END, departureTime)) 
         	departureTime = Constant.PIC_END;
         
-        bankAccount = new BankAccount(Integer.parseInt(dataLine[18]));
+        int budget = Integer.parseInt(dataLine[18]);
+        double onBankAccount = pic.random.nextDouble();
+        double onPayUTAccount = 1 - onBankAccount;
+        bankAccount = new BankAccount(budget * onBankAccount);
+		payUTC = new PayUTCAccount(budget * onPayUTAccount);
         switch (dataLine[19]) {
 	        case "repas": mealState= MealState.REPAS ; break;
 	        case "menu": mealState= MealState.MENU; break;
@@ -238,21 +255,51 @@ public class Student implements Steppable {
 	        	break;
 	        //L'étudiant ne fait rien, il prend une décision
 	        case NOTHING:
-	        	if(mustLeavePic()) setNewWalkTarget(pic, Constant.EXIT_POSITION, WALKING_TO_EXIT);
+	        	if(mustLeavePic()) setNewWalkTarget(Constant.EXIT_POSITION, WALKING_TO_EXIT);
 	        	//Choisit une file d'attente et initie un déplacement
-	        	else if(mustGetBeer()) chooseWaitingLine();
+	        	else if(mustGetBeer()) {
+	        		WaitingLine line = chooseRandomWaitingLine();
+	        		setNewWalkTarget(pic.getModel().getObjectLocation(line), CHOOSING_WAITING_LINE);
+	        	}
 	        	//Choisit une destination aléatoire
-	        	else if(mustWalk()) setNewWalkTarget(pic, pic.getRandomValidLocation(), WALKING);
+	        	else if(mustWalk()) setNewWalkTarget(pic.getRandomValidLocation(), WALKING);
 	        	break;
 	        //L'étudiant marchait, il continue sa marche
-	        case WALKING: case WALKING_TO_WAITING_LINE: case WALKING_TO_EXIT:
-	        	advancePath();
+	        case WALKING: case WALKING_TO_WAITING_LINE: case WALKING_TO_EXIT: case CHOOSING_WAITING_LINE:
+	        	//Si l'étudiant a fini de marcher
+	        	if(advancePath()) {
+	        		switch(studentState) {
+	        		//L'étudiant est arrivé aux files, il choisit la file minimale
+	        		case CHOOSING_WAITING_LINE:
+	        			WaitingLine line = chooseMinimalWaitingLine();
+		        		setNewWalkTarget(pic.getModel().getObjectLocation(line), WALKING_TO_WAITING_LINE);
+		        		break;
+	        		//S'il allait vers une file d'attente minimale, il y rentre
+	        		case WALKING_TO_WAITING_LINE:
+		    			enterWaitingLine();
+		    			studentState = WAITING_IN_QUEUE;
+		    			break;
+		    		//L'étudiant est en train de sortir, on le supprime graphiquement
+	        		case WALKING_TO_EXIT:
+		        		pic.getModel().remove(this);
+		            	pic.decStudentsInside();
+		            	studentState = OUTSIDE;
+		            	break;
+		    		default:
+		    			if(veryPoor) //Si il est très pauvre, il va boucler sur vagabonder jusqu'à sortir du pic
+		    				studentState = NOTHING;
+		    			else //Sinon il se place pour boire
+		    				studentState = DRINKING_WITH_FRIENDS;
+		    			break;
+	        		}
+	        	}
 	        	break;
 	        //L'étudiant est pauvre. Mince alors. Il doit décider s'il recharge et continue de manger des pâtes ou s'il reste à l'eau.
 	        case POOR:
 	        	if(mustRecharge(Constant.RECHARGE_AMOUNT)) {
 	        		rechargePayutc(Constant.RECHARGE_AMOUNT);
-	        		chooseWaitingLine();
+	        		WaitingLine line = chooseRandomWaitingLine();
+	        		setNewWalkTarget(pic.getModel().getObjectLocation(line), CHOOSING_WAITING_LINE);
 	        	}
 	        	else {
 	        		veryPoor = true;
@@ -321,7 +368,7 @@ public class Student implements Steppable {
      * @param stateAfter État de l'étudiant s'il a trouvé un chemin, ne change pas sinon
      * @return true si un chemin a été trouvé, false sinon
      */
-    private boolean setNewWalkTarget(Pic pic, Int2D finalPos, StudentState stateAfter)  {
+    private boolean setNewWalkTarget(Int2D finalPos, StudentState stateAfter)  {
 		//Position courante
     	Int2D currentPos = pic.getModel().getObjectLocation(this);
     	//Mise à jour du chemin à suivre
@@ -334,11 +381,10 @@ public class Student implements Steppable {
     }
     
     /**
-     * Avance sur le chemin pré-déterminé par l'étudiant
-     * et assigne l'état de l'étudiant en fonction de l'état du chemin. 
-     * Si le déplacement est fini, positionne l'état de l'étudiant à NOTHING.
+     * Avance sur le chemin pré-déterminé par l'étudiant 
+     * @return true si l'étudiant a fini son chemin
      */
-    private void advancePath() {
+    private boolean advancePath() {
     	//Position courante
     	Int2D currentPos = pic.getModel().getObjectLocation(this);
     	
@@ -359,27 +405,8 @@ public class Student implements Steppable {
 	    	}
 	    	
 	    	pic.getModel().setObjectLocation(this, finalPos);
-	    	
-	    	//L'étudiant est arrivé à sa destination
-	    	if(path.isEmpty()) {
-	    		//S'il allait vers une file d'attente, il y rentre
-	    		if(studentState == WALKING_TO_WAITING_LINE) {
-	    			enterWaitingFile();
-	    		}
-	    		//L'étudiant est en train de sortir, on le supprime graphiquement
-	    		else if(studentState == WALKING_TO_EXIT) {
-	        		pic.getModel().remove(this);
-	            	pic.decStudentsInside();
-	            	studentState = OUTSIDE;
-	    		}
-	    		else {
-	    			if(veryPoor) //Si il est très pauvre, il va boucler sur vagabonder jusqu'à sortir du pic
-	    				studentState = NOTHING;
-	    			else //Sinon il se place pour boire
-	    				studentState = DRINKING_WITH_FRIENDS;
-	    		}
-	    	}
     	}
+    	return path.isEmpty();
     }
     
     /**
@@ -392,7 +419,7 @@ public class Student implements Steppable {
 
  	   	/* On ne teste que toutes les 5 minutes pour éviter de saturer la proba
  	   	Si on est sur un nombre de minutes divisible par 5, on teste s'il peut rentrer */
-    	if((pic.getTime().getLong(ChronoField.INSTANT_SECONDS) / 60) % 5 == 0) {
+    	if(pic.getMinutes() % 5 == 0) {
 	    	//Cas où l'étudiant est déjà parti, modification de la probabilité de re-rentrer
 	    	double factor = hasBeenInside ? Probability.STUDENT_REENTER_FACTOR : 1;
 	    	
@@ -421,7 +448,7 @@ public class Student implements Steppable {
      * @return true si l'étudiant doit aller chercher une bière
      */
     private boolean mustGetBeer() {
-        return !(!cup.isEmpty() || veryPoor);
+        return cup.isEmpty() && !veryPoor;
     }
     
     /**
@@ -448,7 +475,10 @@ public class Student implements Steppable {
      * @return Booléeen
      */
     private boolean mustDrinkBeer() {
-        return !cup.isEmpty() && enoughTimeToDrink();
+    	//L'étudiant se demande s'il doit boire une gorgée uniquement toutes les 30 secondes
+    	if(pic.getSeconds() % 30 == 0)
+    		return !cup.isEmpty() && enoughTimeToDrink();
+    	return false;
     }
     
     /**
@@ -485,29 +515,51 @@ public class Student implements Steppable {
 	}
 	
 	/**
-	 * Choisit une file d'attente sur laquelle s'insérer. La file choisie est 
-	 * celle contenant le moins d'étudiant au moment d'y entrer. Initie le déplacement.
+	 * Choisit une file d'attente au hasard.
+	 * @return File d'attente aléatoire
 	 */
-	private void chooseWaitingLine() {		
-		WaitingLine line = Arrays
-			.stream(Constant.WAITING_LINES_POSITIONS)
-			.map(pos -> pic.getEntitiesAtLocation(pos, WaitingLine.class))
-			.flatMap(List::stream)
-			.min((l, r) -> Integer.compare(l.getStudentNumber(), r.getStudentNumber()))
-			.get();
-		setNewWalkTarget(pic, pic.getModel().getObjectLocation(line), WALKING_TO_WAITING_LINE);
+	private WaitingLine chooseRandomWaitingLine() {
+		List<WaitingLine> lines = pic.getWaitingLines();
+		return lines.get(pic.random.nextInt(lines.size()));
+	}
+	
+	/**
+	 * Choisit une file d'attente sur laquelle s'insérer. La file choisie est 
+	 * celle contenant le moins d'étudiant au moment d'y entrer, ou, s'il y 
+	 * a "plusieurs" files minimales, une au hasard.
+	 * @return File d'attente minimale
+	 */
+	private WaitingLine chooseMinimalWaitingLine() {
+		List<WaitingLine> lines = pic.getWaitingLines();
+		
+		//Nombre minimum d'étudiants dans une file
+		Integer minStudents = 
+			lines
+				.stream()
+				.min((l, r) -> Integer.compare(l.getStudentNumber(), r.getStudentNumber()))
+				.map(WaitingLine::getStudentNumber)
+				.orElse(0);
+		
+		//Files ayant le nombre d'étudiants minimal 
+		List<WaitingLine> candidates =
+			lines
+				.stream()
+				.filter(l -> l.getStudentNumber() == minStudents)
+				.collect(Collectors.toList());
+		
+		//Choix au hasard
+		return candidates.get(pic.random.nextInt(candidates.size()));
 	}
 
 	/**
 	 * L'étudiant rentre dans une file d'attente sur sa position actuelle
 	 */
-	private void enterWaitingFile() throws IllegalStateException {
+	private void enterWaitingLine() throws IllegalStateException {
 		//On récupère la file d'attente
 		List<WaitingLine> lines = pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), WaitingLine.class);
 		if(lines.isEmpty()) throw new IllegalStateException("Aucune file d'attente sur la position courante!");
 		//Si cette file existe, on entre dedans et on modifie l'état de l'étudiant
 		lines.get(0).enterLine(new Order(this, getOrder()));
-		studentState = WAITING_IN_QUEUE;
 	}
 
     /**
