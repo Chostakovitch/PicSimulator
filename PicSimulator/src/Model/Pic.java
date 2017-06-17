@@ -93,6 +93,8 @@ public class Pic extends SimState {
     	time = timeslot.getStart();
     	studentsInside = 0;
     	cc = new CheckoutCounter();
+    	waitingLines.clear();
+    	barrels.clear();
         super.start();
         pic.clear();
         
@@ -271,8 +273,12 @@ public class Pic extends SimState {
     	time = time.plusSeconds(Constant.TIMESTEP);
     }
     
-    public Instant getTime() {
-    	return time;
+    /**
+     * Renvoie une heure agnostique
+     * @return LocalTime
+     */
+    public LocalTime getTime() {
+    	return LocalTime.from(time.atZone(ZoneId.systemDefault()));
     }
     
     public void incrStudentsInside() {

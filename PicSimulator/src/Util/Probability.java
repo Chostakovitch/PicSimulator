@@ -20,4 +20,9 @@ public class Probability {
 	 * Facteur pour les probabilités que l'étudiant rerentre dans le Pic une fois parti
 	 */
 	public static final double STUDENT_REENTER_FACTOR = 0.001;
+	
+	/**
+	 * Probabilité que l'étudiant reste plus tard que prévu au Pic
+	 */
+	public static final double STUDENT_STAY_LATER = 0.2;
 }

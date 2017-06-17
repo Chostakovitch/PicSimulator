@@ -37,6 +37,7 @@ import Util.Probability;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.util.Int2D;
+import sun.misc.Timeable;
 
 /**
  * Agent dynamique représentant un étudiant (pas nécessairement au sein du Pic).
@@ -160,6 +161,11 @@ public class Student implements Steppable {
 	 * Jours favoris de l'étudiant pour aller boire
 	 */
 	private String[] preferedDays;
+	
+	/**
+	 * Booléen indiquant si l'étudiant restera plus tard que prévu 
+	 */
+	private boolean willStayLater;
 
 	public Student(String[] dataLine, Pic pic) {
 		this.pic = pic;
@@ -167,10 +173,11 @@ public class Student implements Steppable {
 		walkCapacity = Constant.STUDENT_WALK_CAPACITY;
 		cup = new Drink();
 		//Par défaut, l'étudiant est dehors
-		beerDrunk=0;
+		beerDrunk = 0;
 		studentState = OUTSIDE;
 		path = new ArrayList<>();
 		veryPoor = false;
+		willStayLater = pic.random.nextDouble() < Probability.STUDENT_STAY_LATER;
 
         gender = dataLine[0].equals("F") ? Gender.FEMALE : Gender.MALE;
         age = Integer.parseInt(dataLine[1]);
@@ -229,6 +236,8 @@ public class Student implements Steppable {
         //Quoiqu'il arrive, si l'étudiant a une bière, il peut la consommer avant de décider de son action
         if(!cup.isEmpty() && mustDrinkBeer()) {
         	cup.drink(Constant.STUDENT_SWALLOW_CAPACITY);
+        	if(cup.isEmpty())
+        		++beerDrunk;
         }
         
         //Décision en fonction de l'état de l'étudiant
@@ -349,10 +358,6 @@ public class Student implements Steppable {
 		return cup;
 	}
 
-	public void drinkBeer() {
-		++beerDrunk;
-	}
-	
 	public StudentState getStudentState() {
 		return studentState;
 	}
@@ -415,7 +420,6 @@ public class Student implements Steppable {
      */
     private boolean mustEnterPic() throws IllegalStateException {
     	if(studentState != OUTSIDE) throw new IllegalStateException("Student is already inside Pic");
-
  	   	/* On ne teste que toutes les 5 minutes pour éviter de saturer la proba
  	   	Si on est sur un nombre de minutes divisible par 5, on teste s'il peut rentrer */
     	if(pic.getMinutes() % 5 == 0) {
@@ -474,35 +478,47 @@ public class Student implements Steppable {
      * @return Booléeen
      */
     private boolean mustDrinkBeer() {
-    	//L'étudiant se demande s'il doit boire une gorgée uniquement toutes les 30 secondes
-    	if(pic.getSeconds() % 30 == 0)
-    		return !cup.isEmpty() && enoughTimeToDrink();
-    	return false;
+    	return !cup.isEmpty() && pic.random.nextDouble() < getDrinkingTimeFactor();
     }
     
     /**
-	 * Indique si l'etudiant a suffisamment de temps pour consommer le nombre de bieres qu'il a prevu
+	 * Renvoie un facteur proportionnel au temps qu'a l'étudiant
+	 * pour consommer les bières qu'il a prévu de consommer, compris entre 0 et 1.
+	 * Plus l'étudiant a de temps, plus ce facteur est faible, et inversement.
+	 * On peut interpréter ce facteur comme la probabilité de boire une gorgée, et
+	 * => en moyenne <=, cette probabilité aura été réalisée au bout du nombre de
+	 * secondes moyen que devrait respecter l'étudiant pour tout consommer à temps.
 	 * @return booleen
 	 */
-	private boolean enoughTimeToDrink() {
-		int time = drinkingTime * 60; 
-		float n = Constant.CUP_CAPACITY / Constant.STUDENT_SWALLOW_CAPACITY;
+	private double getDrinkingTimeFactor() {
+		//Nombre de gorgées restantes pour boire la bière courante
+		double n = (double)Constant.CUP_CAPACITY / Constant.STUDENT_SWALLOW_CAPACITY;
+		
+		//Nombre de bières restante à boire, en moyenne
 		int beerLeft = beerMax - beerDrunk;
-		if(beerLeft > 0){
-			float logicalDepartureTime = Math.min(Constant.PIC_BEER_END.toSecondOfDay(), departureTime.toSecondOfDay());
-			float timeLeft = logicalDepartureTime - LocalTime.now().toSecondOfDay();
-			/* Une chance sur deux arbitrairement que l'etudiant decide de rester davantage */
-			if(Math.random() < 0.5)  timeLeft += Math.random() * (Constant.PIC_END.toSecondOfDay() - logicalDepartureTime);
-			timeLeft -= (beerLeft * drinkingTime * 60);
-			/* L'etudiant va boire plus rapidement */
-			if(timeLeft < 0){
-				time *= 0.8; 
-			}
-			else if(timeLeft > 0){
-				time *= 1.1;
-			}
-		}
-		return Math.random() <= (n * Math.max(beerLeft, 1)) / time;
+
+		//Nombre de secondes nécessaires pour boire toutes ses bières		
+		double time = drinkingTime * 60 * beerLeft;
+
+		//Nombre de secondes le séparant de la fermeture
+		double logicalDepartureTime = Math.min(Constant.PIC_BEER_END.toSecondOfDay(), departureTime.toSecondOfDay());
+		
+		//Temps restant avant de ne plus pouvoir commander ou de partir
+		double timeLeft = logicalDepartureTime - pic.getTime().toSecondOfDay();
+		
+		//Si l'étudiant va rester plus tard, on ajoute un temps aléatoire prévisionnel
+		if(willStayLater) 
+			timeLeft += pic.random.nextDouble() * (Constant.PIC_END.toSecondOfDay() - logicalDepartureTime);
+		
+		/* On cherche ici à faire tendre la fin de sa consommation de bières à l'heure à
+		 * laquelle il part ou à l'heure à laquelle on ne sert plus de rien, en pondérant 
+		 * par rapport à la vitesse à laquelle il boit sa bière. Plus il a de temps,
+		 * plus il boit lentement.
+		 */
+		time = timeLeft * ((timeLeft / time) * (0.4 + (pic.random.nextDouble() * 0.3)));
+		
+		//Nombre de gorgée restantes sur le temps calculé de consommation totale
+		return (n * Math.max(beerLeft, 1)) / time;
 	}
 
 	/**

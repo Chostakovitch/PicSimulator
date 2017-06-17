@@ -47,10 +47,8 @@ public class PicGrid2D extends SparseGridPortrayal2D {
 	public void draw(Object object, Graphics2D graphics, DrawInfo2D info) {
 		super.draw(object, graphics, info);
 		if(pic != null) {
-			Instant currentTime = pic.getTime();
-			
 			//Récupération d'un horaire agnostique
-			LocalTime agnTime = LocalTime.from(currentTime.atZone(ZoneId.systemDefault()));
+			LocalTime agnTime = pic.getTime();
 			
 			//Formattage
 			String time = agnTime.format(DateTimeFormatter.ISO_LOCAL_TIME);
