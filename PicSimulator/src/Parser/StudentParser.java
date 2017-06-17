@@ -1,4 +1,4 @@
-
+package Parser;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
@@ -11,7 +11,7 @@ import java.util.List;
  * Created by aureliedigeon on 12/06/2017.
  */
 public class StudentParser {
-    public static void main(String[] args) {
+	public static void main(String[] args) {
         try {
             CSVReader reader = openCSV("resources/raw-data-students.csv");
             parseData(reader);
@@ -39,7 +39,6 @@ public class StudentParser {
 
     private static String[] parseLine(String[] oldLine) {
         String[] newLine = new String[23];
-        int result;
 
         // Si la personne ne va pas au pic ou ne boit pas, elle ne nous intéresse pas.
         if (oldLine[5].equals("Non") || oldLine[6].equals("Non")) return null;
@@ -126,10 +125,10 @@ public class StudentParser {
         }
 
         // Nombre de bière bu par soir
-        newLine[14] = testNumber(oldLine[18], "2", 0,10 );
+        newLine[14] = testNumber(oldLine[18], "2", 0, 10);
 
         // Temps pour boire une bière
-        newLine[15] = testNumber(oldLine[19], "20", 0,120 );
+        newLine[15] = testNumber(oldLine[19], "20", 0, 120);
 
         // Heure d'arrivée
         if (oldLine[20].isEmpty()) newLine[16] = "20:00:00";
@@ -140,17 +139,16 @@ public class StudentParser {
         else newLine[17] = oldLine[21];
 
         // Budget
-        newLine[18] = testNumber(oldLine[22], "10", 0,100 );
+        newLine[18] = testNumber(oldLine[22], "10", 0, 100);
 
-        // L'étudiant as-il-mangé
+        // L'étudiant a-t-il mangé
         String res;
         switch (oldLine[23]) {
-            case "Oui": res= "repas"; break;
-            case "Non, je mange un menu au Pic": res= "menu"; break;
-            case "Non, je mange des snacks au Pic": res= "snack"; break;
-            case "Non, manger c'est tricher":
-            case "Non, manger c'est triché": res= ""; break;
-            default: res= "";
+            case "Oui" : res = "repas"; break;
+            case "Non, je mange un menu au Pic" : res = "menu"; break;
+            case "Non, je mange des snacks au Pic" : res = "snack"; break;
+            case "Non, manger c'est triché" : res = ""; break;
+            default: res = "";
         }
         newLine[19] = res;
 
@@ -160,10 +158,10 @@ public class StudentParser {
         newLine[20] = String.join(",", jours);
 
         // Sensibilité à l'alcool
-        newLine[21] = testNumber(oldLine[25], "3", 0,5 );
+        newLine[21] = testNumber(oldLine[25], "3", 0, 5);
 
         // Nombre d'amis rencontré lors d'une soirée au pic
-        newLine[22] = testNumber(oldLine[26], "3", 0,50 );
+        newLine[22] = testNumber(oldLine[26], "3", 0, 50);
 
         return newLine;
     }
@@ -172,8 +170,8 @@ public class StudentParser {
         int result;
         try {
             result = Integer.parseInt(number);
-            if (( min != null && result < min) || (max != null && result > max)) return number;
-            return def;
+            if ((min != null && result < min) || (max != null && result > max)) return def;
+            return number;
         } catch (NumberFormatException e) {
             return def;
         }

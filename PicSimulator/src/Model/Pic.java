@@ -359,8 +359,6 @@ public class Pic extends SimState {
      */
     private void addAgentsStudent() {
     	int i = 0;
-    	String[] days;
-    	Locale locale = Locale.FRANCE;
     	int student_number = DataPicker.getInstance().getStudentPerDayOf(Constant.DATE);
 		while (i < student_number) {
     	    String[] line = DataPicker.getInstance().getRandomLineStudent();
