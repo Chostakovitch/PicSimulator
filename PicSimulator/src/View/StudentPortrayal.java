@@ -45,29 +45,29 @@ public class StudentPortrayal extends ScalablePortrayal<Student> {
             //Largeur d'un éventuel cercle intérieur
         	int secondaryWidth = (int)(effectiveWidth / 3);
         	
-            //L'étudiant a une bière : cercle orange mais qu'il n'est pas arrêté pour la boire
-            if(!student.getCup().isEmpty() && studentState != DRINKING_WITH_FRIENDS) {
-            	graphics.setColor(Color.ORANGE);
+        	//L'étudiant est vraiment trop bourré : la couleur prime sur les autres
+            if(student.isDrunk()) {
+            	graphics.setColor(Color.BLACK);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
-            //L'étudiant n'a plus assez d'argent : cercle rouge
-            else if(student.isVeryPoor() || studentState == POOR) {
-            	graphics.setColor(Color.RED);
+            //L'étudiant a une bière : cercle orange mais qu'il n'est pas arrêté pour la boire
+        	else if(!student.getCup().isEmpty() && studentState != DRINKING_WITH_FRIENDS) {
+            	graphics.setColor(Color.ORANGE);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-
             }
             //L'étudiant s'en va : cercle rose
             else if(studentState == WALKING_TO_EXIT) {
             	graphics.setColor(Color.PINK);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
+            //L'étudiant n'a plus assez d'argent : cercle rouge
+            else if(student.isVeryPoor() || studentState == POOR) {
+            	graphics.setColor(Color.RED);
+            	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
+            }
             //L'étudiant va chercher une bière : cercle bleu
             else if(studentState == WALKING_TO_WAITING_LINE || studentState == CHOOSING_WAITING_LINE) {
             	graphics.setColor(Color.BLUE);
-            	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-            } 
-            else if(studentState == StudentState.WALKING) {
-            	graphics.setColor(Color.BLACK);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
             }
             //L'étudiant attend d'être servi

@@ -11,6 +11,7 @@ import static State.StudentState.WALKING;
 import static State.StudentState.WALKING_TO_EXIT;
 import static State.StudentState.WALKING_TO_WAITING_LINE;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -497,11 +498,19 @@ public class Student implements Steppable {
      */
     private boolean mustLeavePic() throws IllegalStateException {
     	if(studentState == OUTSIDE) throw new IllegalStateException("Student is not inside Pic");
+    	
+    	//Probabilité utilisée pour la comparaison
+		double rand = pic.random.nextDouble();
+		
     	//Si le pic va ferme, l'étudiant part quoi qu'il arrive
     	if(Duration.between(pic.getTime(), Constant.PIC_END).toMinutes() < Constant.PIC_DELTA_TO_LEAVE) return true;
+		
+    	//Si l'étudiant est trop bourré, il a une chance de partir
+		else if(isDrunk())
+			return rand < Probability.STUDENT_LEAVE_DRUNK / Probability.STUDENT_LEAVE_SATURATION;
+		
     	//Sinon, l'étudiant ne part que s'il a fini sa bière
     	if(cup.isEmpty()) {
-    		double rand = pic.random.nextDouble();
     		//S'il est temps de partir
     		if(departureTime.isBefore(pic.getTime())) {
     			//Si l'étudiant a prévu de rester plus tard
@@ -535,7 +544,33 @@ public class Student implements Steppable {
      * @return true si l'étudiant doit aller chercher une bière
      */
     private boolean mustGetBeer() {
-        return !(!cup.isEmpty() || veryPoor || !pic.isBeerTime());
+    	double rand = pic.random.nextDouble();
+    	//Conditions triviales
+    	if(!cup.isEmpty() || veryPoor || !pic.isBeerTime()) return false;
+    	
+    	//Si l'étudiant est ivre, il a une chance de ne plus consommer
+    	if(isDrunk() && rand < Probability.STUDENT_ORDER_IF_DRUNK / Probability.STUDENT_ORDER_SATURATION) return false;
+    	
+    	double remainingTime = Math.min(Constant.PIC_BEER_END.toSecondOfDay(), departureTime.toSecondOfDay());
+    	
+    	//S'il n'a plus le temps de boire en temps simulation
+    	if(Constant.CUP_CAPACITY / Constant.STUDENT_SWALLOW_CAPACITY > remainingTime) return false;
+    	
+    	//Facteur de modification de la proba
+    	double factor = 0.7;
+    	
+    	//S'il n'a plus le temps de boire en temps Pic rapport à sa moyenne, on augmente
+    	if(drinkingTime < remainingTime / 60) factor = 1.0;
+    	
+    	DayOfWeek currentDay = Constant.DATE.getDayOfWeek();
+    	//Si on est en fin de semaine, le factor modificateur augmente
+    	if(currentDay.equals(DayOfWeek.THURSDAY) || currentDay.equals(DayOfWeek.FRIDAY)) factor += 0.2;
+    	
+    	//Si l'étudiant n'a pas bu toutes ses bières, il a toutes les chances d'en reprendre une
+    	if(beerDrunk < beerMax) return rand < factor / Probability.STUDENT_ORDER_SATURATION;
+    	
+    	//Sinon, on pondère par une probabilité
+    	return rand < Probability.STUDENT_ORDER_IF_NO_MORE_BEERS / Probability.STUDENT_ORDER_SATURATION * factor;
     }
     
     /**

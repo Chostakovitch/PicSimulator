@@ -1,5 +1,6 @@
 package Model;
 
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -447,11 +448,11 @@ public class Pic extends SimState {
 				probability = 0.75;
 			}
 			//Si en plus on est Jeudi, il a plus de chances d'aller se rincer
-			if(!Constant.DATE.getDayOfWeek().equals("THURSDAY")){
+			if(!Constant.DATE.getDayOfWeek().equals(DayOfWeek.THURSDAY)){
 				probability += random.nextDouble() * 0.3;
 			}
 			//Si en plus on est Vendredi, il a plus de chances d'aller se rincer
-			if(!Constant.DATE.getDayOfWeek().equals("FRIDAY")){
+			if(!Constant.DATE.getDayOfWeek().equals(DayOfWeek.FRIDAY)){
 				probability += random.nextDouble() * 0.2;
 			}
     	    //S'il la probabilité lui permet de rentrer, il participe à la simulation

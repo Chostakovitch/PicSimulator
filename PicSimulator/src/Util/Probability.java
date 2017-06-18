@@ -23,14 +23,14 @@ public class Probability {
 	public static final double STUDENT_ENTER_PIC_OUTSIDE_INTERVAL = 0.05;
 	
 	/**
-	 * 10 minutes en moyenne pour tester réellement la ré-entrée 
+	 * 5 minutes en moyenne pour tester réellement la ré-entrée 
 	 */
-	public static final int STUDENT_REENTER_SATURATION = 600;
+	public static final int STUDENT_REENTER_SATURATION = 300;
 	
 	/**
-	 * 10 minutes en moyenne pour tester réellement la sortie 
+	 * 5 minutes en moyenne pour tester réellement la sortie 
 	 */
-	public static final int STUDENT_LEAVE_SATURATION = 600;
+	public static final int STUDENT_LEAVE_SATURATION = 300;
 	
 	/**
 	 * 5 minutes en moyenne pour tester réellement le fait de marcher 
@@ -88,7 +88,22 @@ public class Probability {
 	public static final double STUDENT_WALK_TO_FRIEND = 0.6;
 	
 	/**
-	 * Probabilité que l'étudiant reste alors qu'il est ivre
+	 * Probabilité que l'étudiant parte quand il est ivre
 	 */
-	public static final double STUDENT_STAY_DRUNK = 0.5;
+	public static final double STUDENT_LEAVE_DRUNK = 0.3;
+	
+	/**
+	 * Probabilité qu'un étudiant ivre commande une nouvelle bière
+	 */
+	public static final double STUDENT_ORDER_IF_DRUNK = 0.6;
+	
+	/**
+	 * Probabilité qu'un étudiant reprenne une bière s'il a fini sa moyenne  
+	 */
+	public static final double STUDENT_ORDER_IF_NO_MORE_BEERS = 0.3;
+	
+	/**
+	 * 5 minutes en moyenne pour tester réellement la prise de bières
+	 */
+	public static final double STUDENT_ORDER_SATURATION = 300;
 }
