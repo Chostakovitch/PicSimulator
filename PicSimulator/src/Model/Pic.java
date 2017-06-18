@@ -241,11 +241,13 @@ public class Pic extends SimState {
     public Int2D getStudentValidLocation(Student student) {
     	Int2D pos = null;
     	boolean found = false;
-    	while(!found) {
+    	int limit = 20;
+    	while(!found && limit > 0) {
     		pos = getRandomValidLocation();
     		List<Student> studentFounds = getEntitiesAtLocation(pos, Student.class);
     		//Si on a trouvé une case avec un étudiant autre que l'étudiant passé en paramètre
     		if(studentFounds.size() > 0 && !studentFounds.contains(student)) found = true;
+    		--limit;
     	}
     	return pos;
     }
