@@ -219,11 +219,38 @@ public class Constant {
     public static int BARTENDER_TIME_TO_CHECKOUT = 2;
 
     /**
-     * Préférence des bières, de j'adore à je deteste.
+     * Préférence de bière : j'adore
      */
-    public static int LOVE_GRADE = 5; //J'adore
-    public static int NOT_BAD_GRADE = 2; //ça va
-    public static int NEVER_TASTE_GRADE = 0; //Jamais gouté
-    public static int AVERAGE_GRADE = -2; //bof
-    public static int HATE_GRADE = -5; //je deteste
+    public static int LOVE_GRADE = 5; 
+    /**
+     * Préférence de bière : ça va
+     */
+    public static int NOT_BAD_GRADE = 2;
+    /**
+     * Préférence de bière : jamais goûté
+     */
+    public static int NEVER_TASTE_GRADE = 0; 
+    /**
+     * Préférence de bière : bof
+     */
+    public static int AVERAGE_GRADE = -2; 
+    /**
+     * Préférence de bière : je déteste
+     */
+    public static int HATE_GRADE = -5; 
+    
+    /**
+     * Taux d'alcool d'une bière.
+     */
+    public static double BEER_AlCOHOL_LEVEL = 0.25;
+    
+    /**
+     * Taux d'alcool éliminé en une heure
+     */
+    public static double STUDENT_ALCOHOL_ELIMINATION_PER_HOUR = 0.15;
+    
+    /**
+     * Nombre de minutes avant la fermeture à partir duquel les étudiants sortent
+     */
+    public static int PIC_DELTA_TO_LEAVE = 5;
 }

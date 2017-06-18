@@ -86,4 +86,9 @@ public class Probability {
 	 * Probabilité que lorsque l'étudiant se déplace, il aille vers des amis
 	 */
 	public static final double STUDENT_WALK_TO_FRIEND = 0.6;
+	
+	/**
+	 * Probabilité que l'étudiant reste alors qu'il est ivre
+	 */
+	public static final double STUDENT_STAY_DRUNK = 0.5;
 }

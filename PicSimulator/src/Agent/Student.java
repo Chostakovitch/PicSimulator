@@ -11,7 +11,9 @@ import static State.StudentState.WALKING;
 import static State.StudentState.WALKING_TO_EXIT;
 import static State.StudentState.WALKING_TO_WAITING_LINE;
 
+import java.time.Duration;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,12 +71,6 @@ public class Student implements Steppable {
 	 * Distance maximale de déplacement par itération
 	 */
 	private int walkCapacity;
-	
-	/**
-	 * Argent disponible, au cas où, sur le compte banquaire de l'étudiant.
-	 * Le compte PayUTC est à 0 et s'alimente sur le compte banquaire.
-	 */
-	private int moneyCapacity;
 	
 	/**
 	 * Chemin que doit suivre l'étudiant pour rejoindre
@@ -162,6 +158,11 @@ public class Student implements Steppable {
 	 * Booléen indiquant si l'étudiant restera plus tard que prévu 
 	 */
 	private boolean willStayLater;
+	
+	/**
+	 * Taux d'alcoolémie de l'étudiant
+	 */
+	private double alcoholLevel;
 
 	public Student(String[] dataLine, Pic pic) {
 		this.pic = pic;
@@ -222,6 +223,7 @@ public class Student implements Steppable {
 	        case "snack": mealState= MealState.SNACK; break;
 	        default: mealState= MealState.NO_MEAL;
 	    }
+        alcoholLevel = 0;
         alcoholSensitivityGrade = Integer.parseInt(dataLine[21]);
         preferedDays = DateTranslator.translateArray(dataLine[20].split(","));
     }
@@ -229,14 +231,15 @@ public class Student implements Steppable {
     @Override
     public void step(SimState state) {
         pic = (Pic) state;
+        //À chaque tour, son taux d'alcoolémie diminue
+		decreaseAlcoholLevel();
         //Quoiqu'il arrive, si l'étudiant a une bière, il peut la consommer avant de décider de son action
         if(!cup.isEmpty() && mustDrinkBeer()) {
-        	cup.drink(Constant.STUDENT_SWALLOW_CAPACITY);
-        	//S'il a fini sa bière, on incrémente le nombre de bières bues et on le place dans un état de décision
-        	if(cup.isEmpty())
-        		++beerDrunk;
+        	swallowBeer();
+        	if(cup.isEmpty()) {
         		//Il va pas forcément abandonner ses potes parce qu'il a plus de bière quand même...
         		if(studentState != DRINKING_WITH_FRIENDS) studentState = NOTHING;
+        	}
         }
         
         //Décision en fonction de l'état de l'étudiant
@@ -287,6 +290,8 @@ public class Student implements Steppable {
 		    			break;
 		    		//L'étudiant est en train de sortir, on le supprime graphiquement
 	        		case WALKING_TO_EXIT:
+	        			//L'étudiant finit sa bière avant de sortir
+	        			while(!cup.isEmpty()) swallowBeer();
 		        		pic.getModel().remove(this);
 		            	pic.decStudentsInside();
 		            	studentState = OUTSIDE;
@@ -323,7 +328,6 @@ public class Student implements Steppable {
 	 * @return type de bière
 	 */
     private Beer getOrder() {
-		//TODO Surement un attribut / une liste des bières qu'un étudiant veut
     	return choiceOrder();
 	}
 
@@ -364,6 +368,42 @@ public class Student implements Steppable {
 	
 	public boolean isVeryPoor() {
 		return veryPoor;
+	}
+	
+	/**
+	 * Détermine si l'étudiant est ivre ou non en fonction de sa sensibilité, de ce qu'il mangé et bu
+	 * @return true s'il est ivre, false sinon
+	 */
+	public boolean isDrunk() {
+		// Donne une équivalence en terme d'alcoolémie au delà de laquelle l'étudiant est ivre
+		double alcoholSensitivityEquivalence = alcoholSensitivityGrade / (2 * Math.sqrt(3.0));
+		return alcoholLevel >= (alcoholSensitivityEquivalence + mealAlcoholInfluence());
+	}
+	
+	/**
+	 * Calcule l'influence du repas de l'étudiant sur son taux d'alcoolémie
+	 * @return dose d'alcool qu'il pourra supporter en plus
+	 */
+	private double mealAlcoholInfluence() {
+		//Nombre de minutes depuis son arrivée
+		long presentMinutes = Duration.between(arrivalTime, pic.getTime()).toMinutes();
+		/* On considère que l'étudiant a fini de digérer en une heure à partir de son 
+		arrivalTime (pas nécessairement égale à l'heure d'ouverture du pic) */
+		if(presentMinutes > 60) return 0; 
+		
+		//Le sursis induit par la bouffe diminue au fur et à mesure de la digestion
+		double mealAlcoholInfluence = mealState.getAlcoholLevelInfluence();
+		return mealAlcoholInfluence - (mealAlcoholInfluence * presentMinutes / 60);  
+	}
+	
+	/**
+	 * Diminue le taux d'alcoolémie de l'étudiant
+	 */
+	private void decreaseAlcoholLevel() {
+		double alcoholEliminateInASecond = Constant.STUDENT_ALCOHOL_ELIMINATION_PER_HOUR / 3600;
+		if(alcoholLevel < 0.01) 
+			alcoholLevel = 0;
+		else alcoholLevel -= alcoholEliminateInASecond;
 	}
 
 	/**
@@ -414,6 +454,18 @@ public class Student implements Steppable {
     }
     
     /**
+     * Consomme une gorgée de bière
+     */
+    private void swallowBeer() {
+    	cup.drink(Constant.STUDENT_SWALLOW_CAPACITY);
+    	//Augmentation du taux d'alcoolémie
+		alcoholLevel += Constant.STUDENT_SWALLOW_CAPACITY * Constant.BEER_AlCOHOL_LEVEL / Constant.CUP_CAPACITY;
+    	//S'il a fini sa bière, on incrémente le nombre de bières bues et on le place dans un état de décision
+    	if(cup.isEmpty())
+    		++beerDrunk;
+    }
+    
+    /**
      * Indique si l'étudiant doit entrer dans le Pic
      * @return Booléen
      * @throws IllegalStateException si l'étudiant est déjà dans le Pic
@@ -422,6 +474,7 @@ public class Student implements Steppable {
     	if(studentState != OUTSIDE) throw new IllegalStateException("Student is already inside Pic");
     	//Cas où l'étudiant est déjà parti, modification de la probabilité de re-rentrer
     	double factor = 1;
+		//TODO Réfléchir à moduler son retour en fonction de son ivresse ? 
     	if(hasBeenInside) {
     		factor = Probability.STUDENT_REENTER_FACTOR;
     		if(veryPoor)
@@ -444,11 +497,13 @@ public class Student implements Steppable {
      */
     private boolean mustLeavePic() throws IllegalStateException {
     	if(studentState == OUTSIDE) throw new IllegalStateException("Student is not inside Pic");
-    	//L'étudiant ne part que s'il a fini sa bière
+    	//Si le pic va ferme, l'étudiant part quoi qu'il arrive
+    	if(Duration.between(pic.getTime(), Constant.PIC_END).toMinutes() < Constant.PIC_DELTA_TO_LEAVE) return true;
+    	//Sinon, l'étudiant ne part que s'il a fini sa bière
     	if(cup.isEmpty()) {
     		double rand = pic.random.nextDouble();
     		//S'il est temps de partir
-    		if(departureTime.toSecondOfDay() <= pic.getTime().toSecondOfDay()) {
+    		if(departureTime.isBefore(pic.getTime())) {
     			//Si l'étudiant a prévu de rester plus tard
     			if(willStayLater) 
     				return rand < Probability.STUDENT_LEAVE_HOUR_PAST_BUT_ANYWAY / Probability.STUDENT_LEAVE_SATURATION;
@@ -536,11 +591,14 @@ public class Student implements Steppable {
 		//Nombre de secondes nécessaires pour boire toutes ses bières		
 		double time = drinkingTime * 60 * beerLeft;
 
-		//Nombre de secondes le séparant de la fermeture
-		double logicalDepartureTime = Math.min(Constant.PIC_BEER_END.toSecondOfDay(), departureTime.toSecondOfDay());
+		//Numéro de seconde de la fermeture ou du départ
+		long logicalDepartureTime = Math.min(Constant.PIC_BEER_END.toSecondOfDay(), departureTime.toSecondOfDay());
 		
 		//Temps restant avant de ne plus pouvoir commander ou de partir
 		double timeLeft = logicalDepartureTime - pic.getTime().toSecondOfDay();
+		
+		//Oh, le fourbe a déjà dépassé son heure : on considère qu'il va partir bientôt
+		if(timeLeft < 0) timeLeft = pic.getTime().plusMinutes(10).toSecondOfDay();
 		
 		//Si l'étudiant va rester plus tard, on ajoute un temps aléatoire prévisionnel
 		if(willStayLater) 
