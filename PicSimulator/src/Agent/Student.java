@@ -177,7 +177,7 @@ public class Student implements Steppable {
 		veryPoor = false;
 		willStayLater = pic.random.nextDouble() < Probability.STUDENT_STAY_LATER;
 
-        gender = dataLine[0].equals("F") ? Gender.FEMALE : Gender.MALE;
+        gender = dataLine[0].equals("\"F") ? Gender.FEMALE : Gender.MALE;
         age = Integer.parseInt(dataLine[1]);
         switch (dataLine[2]) {
             case "tronc commun": type = TypeSemestre.TRONC_COMMUN; break;
