@@ -243,6 +243,10 @@ public class Student implements Steppable {
         	}
         }
         
+		if(isDrunk() && !cup.isEmpty() && (studentState == DRINKING_WITH_FRIENDS || studentState == NOTHING || studentState == WALKING))
+			spillBeer();
+
+        
         //Décision en fonction de l'état de l'étudiant
         switch(studentState) {
 	        //L'étudiant attend pour une bière, il n'a rien à faire
@@ -405,6 +409,16 @@ public class Student implements Steppable {
 		if(alcoholLevel < 0.01) 
 			alcoholLevel = 0;
 		else alcoholLevel -= alcoholEliminateInASecond;
+	}
+	
+	/**
+	 * D�termine si l'�tudiant renverse sa bi�re ou non
+	 */
+	public void spillBeer(){
+		if(pic.random.nextDouble() < Probability.STUDENT_SPILL_HIS_BEER){
+			cup.emptyCup();
+			studentState = NOTHING;
+		}
 	}
 
 	/**
