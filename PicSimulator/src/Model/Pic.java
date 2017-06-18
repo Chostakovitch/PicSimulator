@@ -409,7 +409,6 @@ public class Pic extends SimState {
     private void addAgentsStudent() {
     	int i = 0;
     	int student_number = DataPicker.getInstance().getStudentPerDayOf(Constant.DATE);
-    	student_number = 1;
 		while (i < student_number) {
     	    String[] line = DataPicker.getInstance().getRandomLineStudent();
     	    //Probabilité d'aller au Pic de base

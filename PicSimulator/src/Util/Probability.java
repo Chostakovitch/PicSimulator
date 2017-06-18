@@ -59,5 +59,5 @@ public class Probability {
 	/**
 	 * Probabilité que l'étudiant se barre alors qu'il parle avec des amis
 	 */
-	public static final double STUDENT_WALK_WHEN_TALKING_WITH_FRIENDS = 0.4;
+	public static final double STUDENT_WALK_WHEN_TALKING_WITH_FRIENDS = 0.3;
 }
