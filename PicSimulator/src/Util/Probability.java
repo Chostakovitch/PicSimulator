@@ -4,6 +4,12 @@ package Util;
  * Cette classe contient les différentes probabilités
  * utilisées au sein de la simulation. Il est possible 
  * de les faire varier pour adapter les comportements.
+ * 
+ * Note : un facteur de saturation correspond à l'idée 
+ * que si la proba est testée à toutes les itérations,
+ * elle doit être très faible pour résister à la masse de tests.
+ * Elle est donc divisée par ce facteur qui correspond au nombre de
+ * seconde où elle devrait être réellement testée.
  */
 public class Probability {
 	/**
@@ -15,6 +21,21 @@ public class Probability {
 	 * Probabilité que l'étudiant vienne en dehors de l'intervalle où il se rend au Pic en général 
 	 */
 	public static final double STUDENT_ENTER_PIC_OUTSIDE_INTERVAL = 0.05;
+	
+	/**
+	 * 10 minutes en moyenne pour tester réellement la ré-entrée 
+	 */
+	public static final int STUDENT_REENTER_SATURATION = 600;
+	
+	/**
+	 * 10 minutes en moyenne pour tester réellement la sortie 
+	 */
+	public static final int STUDENT_LEAVE_SATURATION = 600;
+	
+	/**
+	 * 5 minutes en moyenne pour tester réellement le fait de marcher 
+	 */
+	public static final int STUDENT_WALK_SATURATION = 300;
 	
 	/**
 	 * Facteur pour les probabilités que l'étudiant rerentre dans le Pic une fois parti
@@ -60,4 +81,9 @@ public class Probability {
 	 * Probabilité que l'étudiant se barre alors qu'il parle avec des amis
 	 */
 	public static final double STUDENT_WALK_WHEN_TALKING_WITH_FRIENDS = 0.3;
+	
+	/**
+	 * Probabilité que lorsque l'étudiant se déplace, il aille vers des amis
+	 */
+	public static final double STUDENT_WALK_TO_FRIEND = 0.6;
 }

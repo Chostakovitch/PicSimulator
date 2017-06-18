@@ -244,9 +244,6 @@ public class Student implements Steppable {
 	        //L'étudiant attend pour une bière, il n'a rien à faire
 	        case WAITING_FOR_BEER: case WAITING_IN_QUEUE:
 	        	return;
-			case DRINKING_WITH_FRIENDS:
-				if(mustWalk()) setNewWalkTarget(pic.getRandomValidLocation(), NOTHING);
-				break;
 	        //L'étudiant est en dehors du Pic, il prend une décision
 	        case OUTSIDE:
 	        	//L'étudiant arrive à l'entrée du Pic, il bouge immédiatement sur une position valide
@@ -259,8 +256,11 @@ public class Student implements Steppable {
 	        		}
 	        	}
 	        	break;
-	        //L'étudiant ne fait rien, il prend une décision
-	        case NOTHING:
+	        //L'étudiant ne fait rien ou parle avec des amis, il peut effectuer certaines actions
+	        case NOTHING: case DRINKING_WITH_FRIENDS:
+	        	//Si l'étudiant ne fait rien mais se trouve sur une case avec d'autres gens, il sociabilise
+	        	if(studentState == NOTHING && pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), Student.class).size() > 1)
+					studentState = StudentState.DRINKING_WITH_FRIENDS;
 	        	if(mustLeavePic()) setNewWalkTarget(Constant.EXIT_POSITION, WALKING_TO_EXIT);
 	        	//Choisit une file d'attente et initie un déplacement
 	        	else if(mustGetBeer()) {
@@ -268,7 +268,7 @@ public class Student implements Steppable {
 	        		setNewWalkTarget(pic.getModel().getObjectLocation(line), CHOOSING_WAITING_LINE);
 	        	}
 	        	//Choisit une destination aléatoire
-	        	else if(mustWalk()) setNewWalkTarget(pic.getRandomValidLocation(), WALKING);
+	        	else if(mustWalk()) setNewWalkTarget(getPositionToWalkTo(), WALKING);
 	        	break;
 	        //L'étudiant marchait, il continue sa marche
 	        case WALKING: case WALKING_TO_WAITING_LINE: case WALKING_TO_EXIT: case CHOOSING_WAITING_LINE:
@@ -335,10 +335,10 @@ public class Student implements Steppable {
 	}
 
 	/**
-	 * Fin du service
+	 * L'étudiant a récupéré sa bière, il s'en va
 	 */
 	void endServe() {
-		studentState = NOTHING;
+		setNewWalkTarget(getPositionToWalkTo(), WALKING);
 		//Si l'étudiant prend une bière de plus, on augmente son quota
 		if(beerDrunk == beerMax) ++beerMax;
 	}
@@ -420,25 +420,21 @@ public class Student implements Steppable {
      */
     private boolean mustEnterPic() throws IllegalStateException {
     	if(studentState != OUTSIDE) throw new IllegalStateException("Student is already inside Pic");
- 	   	//On ne teste que toutes les 10 minutes pour éviter de saturer la proba
-    	if(pic.getMinutes() % 10 == 0) {
-	    	//Cas où l'étudiant est déjà parti, modification de la probabilité de re-rentrer
-	    	double factor = 1;
-	    	if(hasBeenInside) {
-	    		factor = Probability.STUDENT_REENTER_FACTOR;
-	    		if(veryPoor)
-	    			factor = Probability.STUDENT_REENTER_POOR_FACTOR;
-	    	}
-	    	double rand = pic.random.nextDouble();
-	    	
-	    	//Cas où l'heure actuelle du pic est comprise dans les horaires classiques de l'étudiant 
-	    	if(pic.isPicTimeWithin(arrivalTime, departureTime)) 
-	    		return rand < Probability.STUDENT_ENTER_PIC_WITHIN_INTERVAL * factor;
-    	
-    		//Cas où il est en dehors de ses heures habituelles :
-    		return rand < Probability.STUDENT_ENTER_PIC_OUTSIDE_INTERVAL * factor;
+    	//Cas où l'étudiant est déjà parti, modification de la probabilité de re-rentrer
+    	double factor = 1;
+    	if(hasBeenInside) {
+    		factor = Probability.STUDENT_REENTER_FACTOR;
+    		if(veryPoor)
+    			factor = Probability.STUDENT_REENTER_POOR_FACTOR;
     	}
-    	return false;
+    	double rand = pic.random.nextDouble();
+    	
+    	//Cas où l'heure actuelle du pic est comprise dans les horaires classiques de l'étudiant 
+    	if(pic.isPicTimeWithin(arrivalTime, departureTime)) 
+    		return rand < Probability.STUDENT_ENTER_PIC_WITHIN_INTERVAL / Probability.STUDENT_REENTER_SATURATION * factor;
+	
+		//Cas où il est en dehors de ses heures habituelles :
+		return rand < Probability.STUDENT_ENTER_PIC_OUTSIDE_INTERVAL / Probability.STUDENT_REENTER_SATURATION * factor;
     }
     
     /**
@@ -447,30 +443,36 @@ public class Student implements Steppable {
      * @throws IllegalStateException si l'étudiant n'est pas dans le Pic
      */
     private boolean mustLeavePic() throws IllegalStateException {
-    	//if(true) return false;
     	if(studentState == OUTSIDE) throw new IllegalStateException("Student is not inside Pic");
-    	//On ne teste que toutes les 10 minutes pour éviter de saturer la proba
-    	if(pic.getMinutes() % 10 == 0) {
-        	//L'étudiant ne part que s'il a fini sa bière
-	    	if(cup.isEmpty()) {
-	    		double rand = pic.random.nextDouble();
-	    		//S'il est temps de partir
-	    		if(departureTime.toSecondOfDay() <= pic.getTime().toSecondOfDay()) {
-	    			//Si l'étudiant a prévu de rester plus tard
-	    			if(willStayLater) 
-	    				return rand < Probability.STUDENT_LEAVE_HOUR_PAST_BUT_ANYWAY;
-	    			//Sinon, s'il a prévu de partir à l'heure
-	    			return rand < Probability.STUDENT_LEAVE_HOUR_PAST;
-	    		}
-	    		//S'il est pauvre, il a une chance de partir
-	    		if(veryPoor) 
-	    			return rand < Probability.STUDENT_LEAVE_POOR;
-	    		//S'il a consommé son quota, il a une chance de partir
-	    		if(beerDrunk >= beerMax)
-	    			return rand < Probability.STUDENT_LEAVE_NO_MORE_DRINK;
-	    	}
+    	//L'étudiant ne part que s'il a fini sa bière
+    	if(cup.isEmpty()) {
+    		double rand = pic.random.nextDouble();
+    		//S'il est temps de partir
+    		if(departureTime.toSecondOfDay() <= pic.getTime().toSecondOfDay()) {
+    			//Si l'étudiant a prévu de rester plus tard
+    			if(willStayLater) 
+    				return rand < Probability.STUDENT_LEAVE_HOUR_PAST_BUT_ANYWAY / Probability.STUDENT_LEAVE_SATURATION;
+    			//Sinon, s'il a prévu de partir à l'heure
+    			return rand < Probability.STUDENT_LEAVE_HOUR_PAST / Probability.STUDENT_LEAVE_SATURATION;
+    		}
+    		//S'il est pauvre, il a une chance de partir
+    		if(veryPoor) 
+    			return rand < Probability.STUDENT_LEAVE_POOR / Probability.STUDENT_LEAVE_SATURATION;
+    		//S'il a consommé son quota, il a une chance de partir
+    		if(beerDrunk >= beerMax)
+    			return rand < Probability.STUDENT_LEAVE_NO_MORE_DRINK / Probability.STUDENT_LEAVE_SATURATION;
     	}
     	return false;
+    }
+    
+    /**
+     * Renvoie une position aléaoitre valide vers laquelle se déplacer
+     * @return
+     */
+    private Int2D getPositionToWalkTo() {
+    	double rand = pic.random.nextDouble();
+    	if(rand < Probability.STUDENT_WALK_TO_FRIEND) return pic.getStudentValidLocation(this);
+    	return pic.getRandomValidLocation();
     }
     
     /**
@@ -497,16 +499,14 @@ public class Student implements Steppable {
      */
     private boolean mustWalk() throws IllegalStateException {
     	if(studentState == OUTSIDE) throw new IllegalStateException("Student is not inside Pic");
-    	//On ne teste si l'étudiant doit faire un mouvement que toutes les 5 minutes
-    	if(pic.getMinutes() % 5 == 0) {
-    		double rand = pic.random.nextDouble();
-    		//S'il parle avec des amis
-    		if(studentState == StudentState.DRINKING_WITH_FRIENDS)
-    			return rand < Probability.STUDENT_WALK_WHEN_TALKING_WITH_FRIENDS;
-    		//S'il ne fait rien de particulier
-    		return rand < Probability.STUDENT_WALK_WHEN_NOTHING;
-    	}
-    	return false;
+    	//Si l'étudiant est sur une file d'attente il doit bouger
+    	if(pic.isOnWaitingLine(pic.getModel().getObjectLocation(this))) return true;
+		double rand = pic.random.nextDouble();
+		//S'il parle avec des amis
+		if(studentState == StudentState.DRINKING_WITH_FRIENDS)
+			return rand < Probability.STUDENT_WALK_WHEN_TALKING_WITH_FRIENDS / Probability.STUDENT_WALK_SATURATION;
+		//S'il ne fait rien de particulier
+		return rand < Probability.STUDENT_WALK_WHEN_NOTHING / Probability.STUDENT_WALK_SATURATION;
     }
     
     /**
@@ -582,7 +582,6 @@ public class Student implements Steppable {
 	 */
 	private WaitingLine chooseMinimalWaitingLine() {
 		List<WaitingLine> lines = pic.getWaitingLines();
-		
 		//Nombre minimum d'étudiants dans une file
 		Integer minStudents = 
 			lines

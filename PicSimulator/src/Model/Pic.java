@@ -153,6 +153,10 @@ public class Pic extends SimState {
     	Interval interval = Interval.of(beginUTC, endUTC);
     	return interval.contains(instantUTC);
     }
+    
+    public boolean isLocationValid(Int2D pos) {
+    	return isLocationValid(pos.x, pos.y);
+    }
 
 	/**
      * Indique si une position est "valide" pour un déplacement :
@@ -207,14 +211,14 @@ public class Pic extends SimState {
 		}
 
 		return null;
-	}
-    
+	} 
     
     /**
-     * Calcule une position aléatoire valide sur la grille. En interne, génère des positions aléatoires
+     * Calcule une position aléatoire valide sur la grille qui n'est pas sur une file d'attente. 
+     * En interne, génère des positions aléatoires
      * jusqu'à en trouver une valide. Bien qu'algorithmiquement peu performant, statistiquement plus efficace
      * que de tirer aléatoirement dans l'ensemble des positions valides (nb_valid >> nb_invalid)
-     * @return
+     * @return Position valide
      */
     public Int2D getRandomValidLocation() {
     	Int2D pos;
@@ -225,7 +229,24 @@ public class Pic extends SimState {
     		y = random.nextInt(pic.getWidth());
     		pos = new Int2D(x, y);
     		
-    	} while(!isLocationValid(x, y));
+    	} while(!isLocationValid(x, y) || isOnWaitingLine(pos));
+    	return pos;
+    }
+    
+    /**
+     * Calcule une position aléatoire VALIDE sur laquelle se trouve un étudiant et qui n'est pas sur une file
+     * @param student Étudiant à EXCLURE du tirage
+     * @return Position valide contenant un ou plusieurs étudiants
+     */
+    public Int2D getStudentValidLocation(Student student) {
+    	Int2D pos = null;
+    	boolean found = false;
+    	while(!found) {
+    		pos = getRandomValidLocation();
+    		List<Student> studentFounds = getEntitiesAtLocation(pos, Student.class);
+    		//Si on a trouvé une case avec un étudiant autre que l'étudiant passé en paramètre
+    		if(studentFounds.size() > 0 && !studentFounds.contains(student)) found = true;
+    	}
     	return pos;
     }
     
@@ -292,15 +313,7 @@ public class Pic extends SimState {
     public int getStudentsInside() {
     	return studentsInside;
     }
-    
-    public long getSeconds() {
-    	return time.getLong(ChronoField.INSTANT_SECONDS);
-    }
-    
-    public long getMinutes() {
-    	return getSeconds() / 60;
-    }
-    
+   
     public List<WaitingLine> getWaitingLines() {
 		return waitingLines;
 	}
@@ -333,6 +346,19 @@ public class Pic extends SimState {
     		}
     	}
     	return pos;
+    }
+    
+    /**
+     * Teste si une position est sur une file d'attente
+     * @param pos Position à tester
+     * @return true si la position est sur une file d'attente
+     */
+    public boolean isOnWaitingLine(Int2D pos) {
+    	for(WaitingLine line : getWaitingLines()) {
+    		Int2D linePos = getModel().getObjectLocation(line);
+    		if(linePos.x == pos.x && linePos.y == pos.y) return true;
+    	}
+    	return false;
     }
 
 	/**

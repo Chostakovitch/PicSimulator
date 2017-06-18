@@ -54,8 +54,7 @@ public class StudentPortrayal extends ScalablePortrayal<Student> {
             else if(student.isVeryPoor() || studentState == POOR) {
             	graphics.setColor(Color.RED);
             	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-            	//État supérieur aux autres
-            	return;
+
             }
             //L'étudiant s'en va : cercle rose
             else if(studentState == WALKING_TO_EXIT) {
@@ -78,7 +77,7 @@ public class StudentPortrayal extends ScalablePortrayal<Student> {
             }
             //L'étudiant est en train de boir avec ses amis
             else if(studentState == DRINKING_WITH_FRIENDS) {
-				graphics.setColor(Color.MAGENTA);
+				graphics.setColor(Color.WHITE);
 				graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
 			}
 		}
