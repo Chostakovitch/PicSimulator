@@ -14,7 +14,6 @@ import static State.StudentState.WALKING_TO_WAITING_LINE;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -245,8 +244,7 @@ public class Student implements Steppable {
         
 		if(isDrunk() && !cup.isEmpty() && (studentState == DRINKING_WITH_FRIENDS || studentState == NOTHING || studentState == WALKING))
 			spillBeer();
-
-        
+		
         //Décision en fonction de l'état de l'étudiant
         switch(studentState) {
 	        //L'étudiant attend pour une bière, il n'a rien à faire
@@ -267,8 +265,12 @@ public class Student implements Steppable {
 	        //L'étudiant ne fait rien ou parle avec des amis, il peut effectuer certaines actions
 	        case NOTHING: case DRINKING_WITH_FRIENDS:
 	        	//Si l'étudiant ne fait rien mais se trouve sur une case avec d'autres gens, il sociabilise
-	        	if(studentState == NOTHING && pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), Student.class).size() > 1)
+	        	if(studentState == NOTHING 
+	        		&& pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), Student.class).size() > 1
+	        		&& !pic.getModel().getObjectLocation(this).equals(Constant.PIC_ENTER))
 					studentState = StudentState.DRINKING_WITH_FRIENDS;
+	        	if(pic.getModel().getObjectLocation(this).equals(Constant.PIC_ENTER))
+	        		setNewWalkTarget(getPositionToWalkTo(), WALKING);
 	        	if(mustLeavePic()) setNewWalkTarget(Constant.EXIT_POSITION, WALKING_TO_EXIT);
 	        	//Choisit une file d'attente et initie un déplacement
 	        	else if(mustGetBeer()) {
@@ -412,7 +414,7 @@ public class Student implements Steppable {
 	}
 	
 	/**
-	 * D�termine si l'�tudiant renverse sa bi�re ou non
+	 * Détermine si l'étudiant renverse sa bière ou non
 	 */
 	public void spillBeer(){
 		if(pic.random.nextDouble() < Probability.STUDENT_SPILL_HIS_BEER){
@@ -549,6 +551,8 @@ public class Student implements Steppable {
      */
     private Int2D getPositionToWalkTo() {
     	double rand = pic.random.nextDouble();
+    	//S'il rentre dans le Pic il ne s'attarde pas avec des potes
+    	if(pic.getModel().getObjectLocation(this).equals(Constant.PIC_ENTER)) return pic.getRandomValidLocation();
     	if(rand < Probability.STUDENT_WALK_TO_FRIEND) return pic.getStudentValidLocation(this);
     	return pic.getRandomValidLocation();
     }
