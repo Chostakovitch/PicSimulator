@@ -35,6 +35,11 @@ public class Drink {
 		beerType = beer;
 	}
 	
+	public void emptyCup(){
+		quantity = 0;
+		beerType = null;
+	}
+	
 	public boolean isEmpty() {
 		return quantity == 0;
 	}

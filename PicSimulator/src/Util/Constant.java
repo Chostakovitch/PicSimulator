@@ -92,7 +92,7 @@ public class Constant {
     /**
      * Heure de fermeture du Pic
      */
-    public static LocalTime PIC_END = LocalTime.of(22, 30);
+    public static LocalTime PIC_END = LocalTime.of(22, 00);
     
     /**
      * Heure de début d'exploitation de la licence II du Pic

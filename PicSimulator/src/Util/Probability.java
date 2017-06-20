@@ -98,6 +98,11 @@ public class Probability {
 	public static final double STUDENT_ORDER_IF_DRUNK = 0.6;
 	
 	/**
+	 * Probabilité qu'un étudiant renverse sa bière
+	 */
+	public static final double STUDENT_SPILL_HIS_BEER = 0.05;
+	
+	/**
 	 * ProbabilitÃ© qu'un Ã©tudiant reprenne une biÃ¨re s'il a fini sa moyenne  
 	 */
 	public static final double STUDENT_ORDER_IF_NO_MORE_BEERS = 0.3;
