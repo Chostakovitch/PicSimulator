@@ -521,9 +521,12 @@ public class Student implements Steppable {
     	//Si le pic va ferme, l'étudiant part quoi qu'il arrive
     	if(Duration.between(pic.getTime(), Constant.PIC_END).toMinutes() < Constant.PIC_DELTA_TO_LEAVE) return true;
 		
-    	//Si l'étudiant est trop bourré, il a une chance de partir
-		else if(isDrunk())
-			return rand < Probability.STUDENT_LEAVE_DRUNK / Probability.STUDENT_LEAVE_SATURATION;
+    	//Si l'étudiant est trop bourré, il a une chance de partir en vidant sa biere au prealable
+		else if(isDrunk()){
+			boolean probability = rand < Probability.STUDENT_LEAVE_DRUNK / Probability.STUDENT_LEAVE_SATURATION;
+			if(probability) cup.emptyCup();
+			return probability;
+		}
 		
     	//Sinon, l'étudiant ne part que s'il a fini sa bière
     	if(cup.isEmpty()) {
