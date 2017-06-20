@@ -73,6 +73,8 @@ public class PicWithUI extends GUIState {
         //Représentation de la caisse enregistreuse
         gridGUI.setPortrayalForClass(CheckoutCounter.class, getCheckoutCounterPortrayal());
         
+        gridGUI.setPortrayalForClass(Floor.class, getFloorPortrayal());
+        
         display.reset();
         display.setBackdrop(Color.WHITE);
         
@@ -115,6 +117,13 @@ public class PicWithUI extends GUIState {
         return r;
     }
 
+    private RectanglePortrayal2D getFloorPortrayal() {
+    	RectanglePortrayal2D r = new RectanglePortrayal2D();
+        r.paint = Color.WHITE;
+        r.filled = true;
+        return r;
+    }
+    
     /**
      * Renvoie la représentation graphique d'une file d'attente
      * @return Carré de couleur

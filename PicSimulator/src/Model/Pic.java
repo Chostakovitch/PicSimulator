@@ -1,5 +1,6 @@
 package Model;
 
+import java.lang.reflect.InvocationTargetException;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ import Agent.Barrel;
 import Agent.Bartender;
 import Agent.CheckoutCounter;
 import Agent.Clock;
+import Agent.Floor;
 import Agent.Inanimate;
 import Agent.Student;
 import Agent.WaitingLine;
@@ -99,13 +101,11 @@ public class Pic extends SimState {
         super.start();
         pic.clear();
         
-        //Ajout des agents
-		addAgentsWall();
-		addAgentsBarCounter();
+        //Ajout des agents dont la position est connue à l'avance
+        constructInitialMap();
+        
+        //Ajout des étudiants
         addAgentsStudent();
-        addAgentsBartenderAndWaitingLine();
-        addAgentsBarrel();
-        addAgentsCheckoutCounter();
 
         //Ajout de l'horloge
         addClock();
@@ -363,69 +363,6 @@ public class Pic extends SimState {
     	}
     	return false;
     }
-
-	/**
-	 * Ajoute les murs à la simulation
-	 */
-	private void addAgentsWall() {
-		for(int i = 0; i < Constant.PIC_WALLS.length; i++) {
-			for (int x = Constant.PIC_WALLS[i][0].getX(); x <= Constant.PIC_WALLS[i][1].getX(); x++ ) {
-				for (int y = Constant.PIC_WALLS[i][0].getY(); y <= Constant.PIC_WALLS[i][1].getY(); y++ ) {
-					pic.setObjectLocation(new Wall(), x, y);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Ajoute le comptoir de bar à la simulation
-	 */
-	private void addAgentsBarCounter() {
-		for(int i = 0; i < Constant.PIC_BAR_COUNTER.length; i++) {
-			for (int x = Constant.PIC_BAR_COUNTER[i][0].getX(); x <= Constant.PIC_BAR_COUNTER[i][1].getX(); x++ ) {
-				for (int y = Constant.PIC_BAR_COUNTER[i][0].getY(); y <= Constant.PIC_BAR_COUNTER[i][1].getY(); y++ ) {
-					pic.setObjectLocation(new BarCounter(), x, y);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Ajouter la caisse enregistreuse
-	 */
-	private void addAgentsCheckoutCounter() {
-		Int2D pos = Constant.PIC_CHECKOUT_COUNTER_POSITION;
-		pic.setObjectLocation(cc, pos.x, pos.y);
-	}
-
-	/**
-	 * Ajoute les fûts de bière à la simulation
-	 */
-	private void addAgentsBarrel() {
-		List<Beer> beerList = Arrays.asList(Beer.values());
-		for(int i = 0; i < Constant.BARREL_POSITIONS.length; i++) {
-			Barrel b = new Barrel(beerList.get(i));
-			Int2D pos = Constant.BARREL_POSITIONS[i];
-			pic.setObjectLocation(b, pos.getX(), pos.getY());
-			barrels.add(b);
-		}
-	}
-
-	/**
-	 * Ajoute les fûts de bière à la simulation
-	 */
-	private void addAgentsBartenderAndWaitingLine() {
-		for(int i = 0; i < Constant.BARTENDER_POSITIONS.length; i++) {
-			Int2D posBart = Constant.BARTENDER_POSITIONS[i];
-			Int2D posWait = Constant.WAITING_LINES_POSITIONS[i];
-			WaitingLine w = new WaitingLine();
-			waitingLines.add(w);
-			Bartender b = new Bartender(w, Constant.BARTENDER_TIME_TO_SERVE, Constant.BARTENDER_TIME_TO_FILL, Constant.BARTENDER_TIME_TO_CHECKOUT, posBart);
-			schedule.scheduleRepeating(b);
-			pic.setObjectLocation(b, posBart.getX(), posBart.getY());
-			pic.setObjectLocation(w, posWait.getX(), posWait.getY());
-		}
-	}
     
     /**
      * Ajoute les étudiants à la simulation.
@@ -468,6 +405,56 @@ public class Pic extends SimState {
      */
     private void addClock() {
     	schedule.scheduleRepeating(new Clock());
+    }
+    
+    /**
+     * Ajoute tous les agents dont la position est connue à l'avance
+     * à la simulation, via une carte.
+     */
+    private void constructInitialMap() {
+    	int bartenderCount = 0;
+        int barrelCount = 0;
+        for(int j = Constant.PIC_WIDTH - 1; j >= 0; --j) {
+        	for(int i = Constant.PIC_HEIGHT - 1; i >= 0; --i) {
+        		Object obj = null;
+        		Object obj2 = null;
+        		switch(Constant.PIC_MAP[i][j]) {
+        			case 0: obj = new Floor(); break;
+        			case 1: obj = new Wall(); break;
+        			case 2: 
+        				WaitingLine w = new WaitingLine();
+        				waitingLines.add(w);
+        				obj = w;
+        				break;
+        			case 3: obj = new BarCounter(); break;
+        			case 4: 
+        				Bartender ba = new Bartender(waitingLines.get(bartenderCount), Constant.BARTENDER_TIME_TO_SERVE, Constant.BARTENDER_TIME_TO_FILL, Constant.BARTENDER_TIME_TO_CHECKOUT, new Int2D(i, j));
+        				++bartenderCount;
+        				obj = ba;
+        				schedule.scheduleRepeating(ba);
+        				break;
+        			case 5:
+        				Barrel b = new Barrel(Arrays.asList(Beer.values()).get(barrelCount));
+        				++barrelCount;
+        				obj = b;
+        				break;
+        			case 6:
+        				Barrel b1 = new Barrel(Arrays.asList(Beer.values()).get(barrelCount));
+        				++barrelCount;
+        				obj = b1;
+        				Barrel b2 = new Barrel(Arrays.asList(Beer.values()).get(barrelCount));
+        				++barrelCount;
+        				obj2 = b2;
+        				break;
+        			case 7: obj = cc; break;
+        		}
+        		pic.setObjectLocation(obj, j, i);
+        		if(obj2 != null) {
+        			pic.setObjectLocation(obj2, j, i);
+        			obj2 = null;
+        		}
+        	}
+        }
     }
     
     /**
