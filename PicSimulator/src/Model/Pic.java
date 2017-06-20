@@ -1,6 +1,5 @@
 package Model;
 
-import java.lang.reflect.InvocationTargetException;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -8,12 +7,14 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.TextStyle;
-import java.time.temporal.ChronoField;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import Util.DataPicker;
 import org.threeten.extra.Interval;
 
 import Agent.BarCounter;
@@ -170,14 +171,21 @@ public class Pic extends SimState {
      */
     public boolean isLocationValid(int x, int y) {
     	//En dehors de la grille
-    	if(!(x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight())) return false;
+    	if(!(x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight())) {
+    		return false;
+    	}
     	//Case pleine
-    	if(isLocationFull(x, y)) return false;
+    	if(isLocationFull(x, y)) {
+    		System.out.println(2);
+    		return false;
+    	}
     	//Vérification des objets inanimés
 		Bag b = pic.getObjectsAtLocation(x, y);
 		if (b != null) {
 			for (Object o : b) {
-				if (o instanceof Inanimate && !(o instanceof WaitingLine)) return false;
+				if (o instanceof Inanimate && !(o instanceof WaitingLine || o instanceof Floor)){
+					return false;
+				}
 			}
 		}
     	return true;
@@ -416,42 +424,38 @@ public class Pic extends SimState {
         int barrelCount = 0;
         for(int j = Constant.PIC_WIDTH - 1; j >= 0; --j) {
         	for(int i = Constant.PIC_HEIGHT - 1; i >= 0; --i) {
-        		Object obj = null;
-        		Object obj2 = null;
         		switch(Constant.PIC_MAP[i][j]) {
-        			case 0: obj = new Floor(); break;
-        			case 1: obj = new Wall(); break;
+        			case 0: pic.setObjectLocation(new Floor(), j, i); break;
+        			case 1: pic.setObjectLocation(new Wall(), j, i); break;
         			case 2: 
         				WaitingLine w = new WaitingLine();
         				waitingLines.add(w);
-        				obj = w;
+        				pic.setObjectLocation(w, j, i);
         				break;
-        			case 3: obj = new BarCounter(); break;
+        			case 3: pic.setObjectLocation(new BarCounter(), j, i); break;
         			case 4: 
-        				Bartender ba = new Bartender(waitingLines.get(bartenderCount), Constant.BARTENDER_TIME_TO_SERVE, Constant.BARTENDER_TIME_TO_FILL, Constant.BARTENDER_TIME_TO_CHECKOUT, new Int2D(i, j));
+        				Bartender ba = new Bartender(waitingLines.get(bartenderCount), Constant.BARTENDER_TIME_TO_SERVE, Constant.BARTENDER_TIME_TO_FILL, Constant.BARTENDER_TIME_TO_CHECKOUT, new Int2D(j, i));
         				++bartenderCount;
-        				obj = ba;
+        				pic.setObjectLocation(ba, j, i);
         				schedule.scheduleRepeating(ba);
         				break;
         			case 5:
         				Barrel b = new Barrel(Arrays.asList(Beer.values()).get(barrelCount));
+        				barrels.add(b);
         				++barrelCount;
-        				obj = b;
+        				pic.setObjectLocation(b, j, i);
         				break;
         			case 6:
         				Barrel b1 = new Barrel(Arrays.asList(Beer.values()).get(barrelCount));
         				++barrelCount;
-        				obj = b1;
+        				barrels.add(b1);
+        				pic.setObjectLocation(b1, j, i);
         				Barrel b2 = new Barrel(Arrays.asList(Beer.values()).get(barrelCount));
         				++barrelCount;
-        				obj2 = b2;
+        				barrels.add(b2);
+        				pic.setObjectLocation(b2, j, i);
         				break;
-        			case 7: obj = cc; break;
-        		}
-        		pic.setObjectLocation(obj, j, i);
-        		if(obj2 != null) {
-        			pic.setObjectLocation(obj2, j, i);
-        			obj2 = null;
+        			case 7: pic.setObjectLocation(cc, j, i); break;
         		}
         	}
         }

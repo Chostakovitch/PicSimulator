@@ -264,7 +264,7 @@ public class Student implements Steppable {
 	        	break;
 	        //L'étudiant ne fait rien ou parle avec des amis, il peut effectuer certaines actions
 	        case NOTHING: case DRINKING_WITH_FRIENDS:
-	        	//Si l'étudiant ne fait rien mais se trouve sur une case avec d'autres gens, il sociabilise
+	        	//Si l'étudiant ne fait rien mais se trouve sur une case avec d'autres gens, il sociabilise + s'il n'est pas à l'entrée
 	        	if(studentState == NOTHING 
 	        		&& pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), Student.class).size() > 1
 	        		&& !pic.getModel().getObjectLocation(this).equals(Constant.PIC_ENTER))
