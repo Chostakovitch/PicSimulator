@@ -1,5 +1,5 @@
 package Agent;
 
-public class BarCounter implements Inanimate {
+public class BarCounter implements Inanimate, Invalid {
 
 }

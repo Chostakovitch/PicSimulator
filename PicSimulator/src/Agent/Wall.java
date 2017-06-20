@@ -1,5 +1,5 @@
 package Agent;
 
-public class Wall implements Inanimate {
+public class Wall implements Inanimate, Invalid {
 
 }

@@ -24,6 +24,7 @@ import Agent.CheckoutCounter;
 import Agent.Clock;
 import Agent.Floor;
 import Agent.Inanimate;
+import Agent.Invalid;
 import Agent.Student;
 import Agent.WaitingLine;
 import Agent.Wall;
@@ -171,21 +172,14 @@ public class Pic extends SimState {
      */
     public boolean isLocationValid(int x, int y) {
     	//En dehors de la grille
-    	if(!(x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight())) {
-    		return false;
-    	}
+    	if(!(x >= 0 && y >= 0 && x < pic.getWidth() && y < pic.getHeight())) return false;
     	//Case pleine
-    	if(isLocationFull(x, y)) {
-    		System.out.println(2);
-    		return false;
-    	}
+    	if(isLocationFull(x, y)) return false;
     	//Vérification des objets inanimés
 		Bag b = pic.getObjectsAtLocation(x, y);
 		if (b != null) {
 			for (Object o : b) {
-				if (o instanceof Inanimate && !(o instanceof WaitingLine || o instanceof Floor)){
-					return false;
-				}
+				if (o instanceof Invalid) return false;
 			}
 		}
     	return true;

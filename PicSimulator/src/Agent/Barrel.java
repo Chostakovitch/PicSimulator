@@ -9,7 +9,7 @@ import ec.util.MersenneTwisterFast;
 /**
  * Agent statique représentant un fût de bière.
  */
-public class Barrel implements Inanimate {
+public class Barrel implements Inanimate, Invalid {
 
     private ArrayList<Bartender> waitingList;
 
