@@ -1,0 +1,15 @@
+version: '2'
+services:
+  pic-db:
+    image: postgres:9.6
+    container_name: pic-db
+
+    # You can set up the db name, user and password directly here
+    environment:
+      POSTGRES_DB: pic
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: mdp
+
+    # Change the first port to match your configuration
+    ports:
+      - 5433:5432/tcp
