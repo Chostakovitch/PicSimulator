@@ -12,6 +12,7 @@ import sim.display.Display2D;
 import sim.display.GUIState;
 import sim.engine.SimState;
 import sim.portrayal.Inspector;
+import sim.portrayal.SimplePortrayal2D;
 import sim.portrayal.simple.OvalPortrayal2D;
 import sim.portrayal.simple.RectanglePortrayal2D;
 
@@ -73,83 +74,50 @@ public class PicWithUI extends GUIState {
         //Représentation de la caisse enregistreuse
         gridGUI.setPortrayalForClass(CheckoutCounter.class, getCheckoutCounterPortrayal());
         
-        gridGUI.setPortrayalForClass(Floor.class, getFloorPortrayal());
+        //Représentation des chaises
+        gridGUI.setPortrayalForClass(Chair.class, getChairPortrayal());
+        
+        //Représentation des escaliers
+        gridGUI.setPortrayalForClass(Stair.class, getStairsPortrayal());
+        
+        //Représentation des tables
+        gridGUI.setPortrayalForClass(Table.class, getTablePortrayal());
+        
+        //Représentation des tables extérieures
+        gridGUI.setPortrayalForClass(BigTable.class, getBigTablePortrayal());
         
         display.reset();
-        display.setBackdrop(Color.WHITE);
+        display.setBackdrop(new Color(223, 226, 219));
         
         display.repaint();
     }
-
-    /**
-     * Renvoie la représentation graphique d'un fût de bière
-     * @return Rond de couleur
-     */
-    private OvalPortrayal2D getBarrelPortrayal() { return new BarrelPortrayal(state); }
-
-    /**
-     * Renvoie la représentation graphique d'un permanencier
-     * @return Rond de couleur
-     */
-    private OvalPortrayal2D getBartenderPortrayal() {
-    	return new BartenderPortrayal(state);
-    }
-
-    /**
-     * Renvoie la représentation graphique d'un mur
-     * @return Carré de couleur
-     */
-    private RectanglePortrayal2D getWallPortrayal() {
-        RectanglePortrayal2D r = new RectanglePortrayal2D();
-        r.paint = Color.GRAY;
-        r.filled = true;
-        return r;
-    }
-
-    /**
-     * Renvoie la représentation graphique d'un morceau du comptoir du bar
-     * @return Carré de couleur
-     */
-    private RectanglePortrayal2D getBarCounterPortrayal() {
-        RectanglePortrayal2D r = new RectanglePortrayal2D();
-        r.paint = Color.BLACK;
-        r.filled = true;
-        return r;
-    }
-
-    private RectanglePortrayal2D getFloorPortrayal() {
-    	RectanglePortrayal2D r = new RectanglePortrayal2D();
-        r.paint = Color.WHITE;
-        r.filled = true;
-        return r;
-    }
     
-    /**
-     * Renvoie la représentation graphique d'une file d'attente
-     * @return Carré de couleur
-     */
+    private SimplePortrayal2D getBigTablePortrayal() { return new BigTablePortrayal(state); }
+
+    private SimplePortrayal2D getTablePortrayal() { return new TablePortrayal(state); }
+    
+    private SimplePortrayal2D getChairPortrayal() { return new ChairPortrayal(state); }
+    
+    private SimplePortrayal2D getStairsPortrayal() { return new StairPortrayal(state); }
+    
+    private SimplePortrayal2D getBarrelPortrayal() { return new BarrelPortrayal(state); }
+
+    private SimplePortrayal2D getBartenderPortrayal() { return new BartenderPortrayal(state); }
+
+    private SimplePortrayal2D getWallPortrayal() { return new WallPortrayal(state); }
+
+    private SimplePortrayal2D getBarCounterPortrayal() { return new BarCounterPortrayal(state); }
+
     private RectanglePortrayal2D getWaitingLinePortrayal() {
         RectanglePortrayal2D r = new RectanglePortrayal2D();
-        r.paint = Color.CYAN;
+        r.paint = new Color(223, 226, 219);
         r.filled = true;
         return r;
     }
 
-    /**
-     * Renvoie la représentation graphique d'une caisse enregistreuse
-     * @return Carré de couleur
-     */
-    private RectanglePortrayal2D getCheckoutCounterPortrayal() {
-        RectanglePortrayal2D r = new RectanglePortrayal2D();
-        r.paint = Color.PINK;
-        r.filled = true;
-        return r;
-    }
+    private SimplePortrayal2D getCheckoutCounterPortrayal() { return new CheckoutPortrayal(state); }
 
-
-    private OvalPortrayal2D getStudentPortrayal() {
-    	return new StudentPortrayal(state);
-    }
+    private SimplePortrayal2D getStudentPortrayal() { return new StudentPortrayal(state); }
 
     @Override
 	public void init(Controller c) {

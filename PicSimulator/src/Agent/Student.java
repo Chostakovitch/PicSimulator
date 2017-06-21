@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import Enum.Beer;
+import Enum.Direction;
 import Enum.Gender;
 import Enum.MealState;
 import Enum.TypeSemestre;
@@ -163,6 +164,11 @@ public class Student implements Steppable {
 	 * Taux d'alcoolémie de l'étudiant
 	 */
 	private double alcoholLevel;
+	
+	/**
+	 * Direction de l'étudiant
+	 */
+	private Direction direction;
 
 	public Student(String[] dataLine, Pic pic) {
 		this.pic = pic;
@@ -175,6 +181,7 @@ public class Student implements Steppable {
 		path = new ArrayList<>();
 		veryPoor = false;
 		willStayLater = pic.random.nextDouble() < Probability.STUDENT_STAY_LATER;
+		direction = Direction.BOTTOM;
 
         gender = dataLine[0].equals("\"F") ? Gender.FEMALE : Gender.MALE;
         age = Integer.parseInt(dataLine[1]);
@@ -245,6 +252,8 @@ public class Student implements Steppable {
 		if(isDrunk() && !cup.isEmpty() && (studentState == DRINKING_WITH_FRIENDS || studentState == NOTHING || studentState == WALKING))
 			spillBeer();
 		
+		Int2D currentPos = pic.getModel().getObjectLocation(this);
+		
         //Décision en fonction de l'état de l'étudiant
         switch(studentState) {
 	        //L'étudiant attend pour une bière, il n'a rien à faire
@@ -256,6 +265,7 @@ public class Student implements Steppable {
 	        	if(mustEnterPic()) {
 	        		if(!pic.isLocationFull(Constant.PIC_ENTER)) {
 		        		pic.getModel().setObjectLocation(this, Constant.PIC_ENTER);
+		        		direction = Direction.BOTTOM;
 		            	pic.incrStudentsInside();
 		            	studentState = NOTHING;
 		            	hasBeenInside = true;
@@ -266,24 +276,47 @@ public class Student implements Steppable {
 	        case NOTHING: case DRINKING_WITH_FRIENDS:
 	        	//Si l'étudiant ne fait rien mais se trouve sur une case avec d'autres gens, il sociabilise + s'il n'est pas à l'entrée
 	        	if(studentState == NOTHING 
-	        		&& pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), Student.class).size() > 1
-	        		&& !pic.getModel().getObjectLocation(this).equals(Constant.PIC_ENTER))
+	        		&& pic.getEntitiesAtLocation(currentPos, Student.class).size() > 1
+	        		&& !currentPos.equals(Constant.PIC_ENTER))
 					studentState = StudentState.DRINKING_WITH_FRIENDS;
-	        	if(pic.getModel().getObjectLocation(this).equals(Constant.PIC_ENTER))
+	        	
+	        	//Ne reste pas à l'entrée
+	        	if(currentPos.equals(Constant.PIC_ENTER))
 	        		setNewWalkTarget(getPositionToWalkTo(), WALKING);
-	        	if(mustLeavePic()) setNewWalkTarget(Constant.EXIT_POSITION, WALKING_TO_EXIT);
-	        	//Choisit une file d'attente et initie un déplacement
-	        	else if(mustGetBeer()) {
-	        		WaitingLine line = chooseRandomWaitingLine();
-	        		setNewWalkTarget(pic.getModel().getObjectLocation(line), CHOOSING_WAITING_LINE);
+	        	
+	        	//Ne reste pas sur une file d'attente
+	        	boolean lineFound = false;
+	        	List<WaitingLine> lines = pic.getEntitiesAtLocation(currentPos, WaitingLine.class);
+	        	for(WaitingLine line : lines) {
+	        		if(pic.getModel().getObjectLocation(line).equals(currentPos)) {
+	        			setNewWalkTarget(getPositionToWalkTo(), WALKING);
+	        			lineFound = true;
+	        			break;
+	        		}
 	        	}
-	        	//Choisit une destination aléatoire
-	        	else if(mustWalk()) setNewWalkTarget(getPositionToWalkTo(), WALKING);
+	        	
+	        	if(!lineFound) {
+		        	if(mustLeavePic()) setNewWalkTarget(Constant.EXIT_POSITION, WALKING_TO_EXIT);
+		        	//Choisit une file d'attente et initie un déplacement
+		        	else if(mustGetBeer()) {
+		        		WaitingLine line = chooseRandomWaitingLine();
+		        		setNewWalkTarget(pic.getModel().getObjectLocation(line), CHOOSING_WAITING_LINE);
+		        	}
+		        	//Choisit une destination aléatoire
+		        	else if(mustWalk()) setNewWalkTarget(getPositionToWalkTo(), WALKING);
+		        	
+		        	//Gestion du changement physique de direction
+		        	else {
+		        		double random = pic.random.nextDouble();
+		        		if(random < Probability.STUDENT_CHANGE_DIRECTION / Probability.STUDENT_DIRECTION_SATURATION) setRandomDirection();
+		        	}
+	        	}
 	        	break;
 	        //L'étudiant marchait, il continue sa marche
 	        case WALKING: case WALKING_TO_WAITING_LINE: case WALKING_TO_EXIT: case CHOOSING_WAITING_LINE:
 	        	//Si l'étudiant a fini de marcher
 	        	if(advancePath()) {
+	        		setRandomDirection();
 	        		switch(studentState) {
 	        		//L'étudiant est arrivé aux files, il choisit la file minimale
 	        		case CHOOSING_WAITING_LINE:
@@ -292,12 +325,14 @@ public class Student implements Steppable {
 		        		break;
 	        		//S'il allait vers une file d'attente minimale, il y rentre
 	        		case WALKING_TO_WAITING_LINE:
+	        			direction = Direction.TOP;
 		    			enterWaitingLine();
 		    			studentState = WAITING_IN_QUEUE;
 		    			break;
 		    		//L'étudiant est en train de sortir, on le supprime graphiquement
 	        		case WALKING_TO_EXIT:
 	        			//L'étudiant finit sa bière avant de sortir
+	        			direction = Direction.TOP;
 	        			while(!cup.isEmpty()) swallowBeer();
 		        		pic.getModel().remove(this);
 		            	pic.decStudentsInside();
@@ -305,7 +340,7 @@ public class Student implements Steppable {
 		            	break;
 		            //S'il était juste en train de marcher, il va discuter avec des potos
 		    		default:
-		    			if(pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), Student.class).size() > 1)
+		    			if(pic.getEntitiesAtLocation(currentPos, Student.class).size() > 1)
 		    				studentState = DRINKING_WITH_FRIENDS;
 		    			else
 		    				studentState = NOTHING;
@@ -334,21 +369,21 @@ public class Student implements Steppable {
 	 * Renvoie le type de bière que l'étudiant veut
 	 * @return type de bière
 	 */
-    private Beer getOrder() {
+    public Beer getOrder() {
     	return choiceOrder();
 	}
 
 	/**
 	 * L'étudiant se fait servir
 	 */
-	void serve() {
+	public void serve() {
 		studentState = WAITING_FOR_BEER;
 	}
 
 	/**
 	 * L'étudiant a récupéré sa bière, il s'en va
 	 */
-	void endServe() {
+	public void endServe() {
 		setNewWalkTarget(getPositionToWalkTo(), WALKING);
 		//Si l'étudiant prend une bière de plus, on augmente son quota
 		if(beerDrunk == beerMax) ++beerMax;
@@ -357,11 +392,11 @@ public class Student implements Steppable {
 	/**
 	 * Préviens l'étudiant qu'il n'a pas assez d'argent sur son compte
 	 */
-	void notEnoughMoney() {
+	public void notEnoughMoney() {
 		studentState = POOR;
 	}
 	
-    PayUTCAccount getPayUTC() {
+    public PayUTCAccount getPayUTC() {
 		return payUTC;
 	}
 
@@ -377,6 +412,10 @@ public class Student implements Steppable {
 		return veryPoor;
 	}
 	
+	public Direction getDirection() {
+		return direction;
+	}
+
 	/**
 	 * Détermine si l'étudiant est ivre ou non en fonction de sa sensibilité, de ce qu'il mangé et bu
 	 * @return true s'il est ivre, false sinon
@@ -422,6 +461,19 @@ public class Student implements Steppable {
 			studentState = NOTHING;
 		}
 	}
+	
+	/**
+	 * Met à jour la liste des préférences de l'étudiant et renvoie une bière valide 
+	 * @param unavailableBeer Bières à enlever de la liste des préférences
+	 * @return Bière choisie parmi la liste actualisée
+	 */
+    public Beer reorder(List<Beer> unavailableBeer) {
+		HashMap<Beer, Integer> savedGrade = new HashMap<>(beersGrade);
+		beersGrade.keySet().removeAll(unavailableBeer);
+		Beer choice = choiceOrder();
+		beersGrade = savedGrade;
+		return choice;
+	}
 
 	/**
      * Génère un chemin pour le déplacement de l'étudiant.
@@ -465,6 +517,12 @@ public class Student implements Steppable {
 	    		--i;
 	    	}
 	    	
+	    	//Mise à jour de la direction
+	    	if(path.size() > 0) {
+	    		setDirection(currentPos, path.get(0));
+	    	}
+	    	
+	    	//Mise à jour de la position
 	    	pic.getModel().setObjectLocation(this, finalPos);
     	}
     	return path.isEmpty();
@@ -749,6 +807,11 @@ public class Student implements Steppable {
         return beer;
     }
 
+	/**
+	 * Retourne une bière aléatoire selon l'ordre de préférence
+	 * @param grade Ordre de préférence
+	 * @return Bière
+	 */
     private Beer getRandomGradeBeer(int grade) {
         List<Beer> beersWithGrade = beersGrade.entrySet()
             .stream()
@@ -759,11 +822,25 @@ public class Student implements Steppable {
         return beersWithGrade.get(pic.random.nextInt(beersWithGrade.size()));
     }
 
-    Beer reorder(List<Beer> unavailableBeer) {
-		HashMap<Beer, Integer> savedGrade = new HashMap<>(beersGrade);
-		beersGrade.keySet().removeAll(unavailableBeer);
-		Beer choice = choiceOrder();
-		beersGrade = savedGrade;
-		return choice;
-	}
+    /**
+     * Détermine et assigne la direction de l'étudiant
+     * @param before Position actuelle
+     * @param after Position suivante
+     */
+    private void setDirection(Int2D before, Int2D after) {
+    	if(after.x > before.x) direction = Direction.RIGHT;
+    	else if(after.y > before.y) direction = Direction.BOTTOM;
+    	else if(after.x < before.x) direction = Direction.LEFT;
+    	else if(after.y < before.y) direction = Direction.TOP;
+    	//Par défaut
+    	else direction = Direction.BOTTOM;
+    }
+    
+    private void setRandomDirection() {
+    	double random = pic.random.nextDouble();
+    	if(random < 0.25) direction = Direction.BOTTOM;
+    	else if(random < 0.5) direction = Direction.LEFT;
+    	else if(random < 0.75) direction = Direction.RIGHT;
+    	else direction = Direction.TOP;
+    }
 }

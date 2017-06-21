@@ -24,35 +24,30 @@ public class BarrelPortrayal extends ScalablePortrayal<Barrel> {
 	public BarrelPortrayal(SimState state) {
 		super(state);
 		
-		//Les fûts sont jaune
-		paint = Color.YELLOW;
-		
 		//Paramétrage de la classe
 		entityType = Barrel.class;
 	}
 	
 	@Override
 	public void draw(Object object, Graphics2D graphics, DrawInfo2D info) {
-		//Dessin de base
-		super.draw(object, graphics, info);
-		
 		if(object instanceof Barrel) {
 			Barrel barrel = (Barrel) object;
-            //Largeur d'un éventuel cercle intérieur
-        	int secondaryWidth = (int)(effectiveWidth / 3);
 
 			if(barrel.isBarrelBroken()) {
-				paint = Color.RED;
+				setBackground("barrel_broken.png");
 			}
 			else if(barrel.isEmpty()) {
-				paint = Color.BLUE;
+				setBackground("barrel_empty.png");
 			}
 			else if(barrel.isUsed()) {
-				paint = Color.CYAN;
+				setBackground("barrel_used.png");
 			}
 			else {
-				paint = Color.YELLOW;
+				setBackground("barrel.png");
 			}
 		}
+		
+		//Dessin effectif
+		super.draw(object, graphics, info);
 	}
 }

@@ -20,15 +20,21 @@ import org.threeten.extra.Interval;
 import Agent.BarCounter;
 import Agent.Barrel;
 import Agent.Bartender;
+import Agent.BigTable;
+import Agent.Chair;
 import Agent.CheckoutCounter;
 import Agent.Clock;
 import Agent.Floor;
 import Agent.Inanimate;
 import Agent.Invalid;
+import Agent.Stair;
 import Agent.Student;
+import Agent.Table;
 import Agent.WaitingLine;
 import Agent.Wall;
 import Enum.Beer;
+import Enum.Direction;
+import Enum.WallStatus;
 import PathFinding.AStar;
 import PathFinding.Node;
 import Util.Constant;
@@ -197,13 +203,25 @@ public class Pic extends SimState {
      */
     public boolean isLocationFull(int x, int y) {
     	Int2D pos = new Int2D(x, y);
+    	int studentNumber = getEntitiesAtLocation(pos, Student.class).size();
+    	List<Chair> chairs = getEntitiesAtLocation(pos, Chair.class); 
     	return 
     			//Une file d'attente a une capacité illimitée
     			getEntitiesAtLocation(pos, WaitingLine.class).size() == 0 &&
-    			//On compte le nombre d'étudiants sur la case, si ce n'est pas une file d'attente
-    			getEntitiesAtLocation(pos, Student.class).size() >= Constant.MAX_STUDENT_PER_CELL;
+    			(
+    				//Pas plus d'un étudiant par chaise	
+    				(!chairs.isEmpty() && studentNumber > 0)
+    			||
+    				//On compte le nombre d'étudiants sur la case, si ce n'est pas une file d'attente
+    			 	studentNumber >= Constant.MAX_STUDENT_PER_CELL
+    			);
     }
 
+    /**
+     * Récupère le couple (fût, position) correspond à la bière demandée
+     * @param b Bière demandée
+     * @return Couple (fût, position)
+     */
     public Map.Entry<Barrel, Int2D> getBarrel(Beer b) {
     	Optional<Barrel> optionalBarrel = barrels.stream()
 				.filter(barrelInt2DEntry -> barrelInt2DEntry.getType() == b).findFirst();
@@ -330,6 +348,7 @@ public class Pic extends SimState {
      * @return Liste de T
      */
     public <T> List<T> getEntitiesAtLocation(Int2D pos, Class<T> type) {
+    	if(pos == null) return new ArrayList<T>();
     	Bag entities = pic.getObjectsAtLocation(pos);
     	if(entities == null) return new ArrayList<T>();
     	return Arrays
@@ -419,37 +438,61 @@ public class Pic extends SimState {
         for(int j = Constant.PIC_WIDTH - 1; j >= 0; --j) {
         	for(int i = Constant.PIC_HEIGHT - 1; i >= 0; --i) {
         		switch(Constant.PIC_MAP[i][j]) {
-        			case 0: pic.setObjectLocation(new Floor(), j, i); break;
-        			case 1: pic.setObjectLocation(new Wall(), j, i); break;
         			case 2: 
         				WaitingLine w = new WaitingLine();
         				waitingLines.add(w);
         				pic.setObjectLocation(w, j, i);
         				break;
-        			case 3: pic.setObjectLocation(new BarCounter(), j, i); break;
+        			case 3: pic.setObjectLocation(new Stair(), j, i); break;
         			case 4: 
         				Bartender ba = new Bartender(waitingLines.get(bartenderCount), Constant.BARTENDER_TIME_TO_SERVE, Constant.BARTENDER_TIME_TO_FILL, Constant.BARTENDER_TIME_TO_CHECKOUT, new Int2D(j, i));
         				++bartenderCount;
         				pic.setObjectLocation(ba, j, i);
         				schedule.scheduleRepeating(ba);
         				break;
-        			case 5:
-        				Barrel b = new Barrel(Arrays.asList(Beer.values()).get(barrelCount));
-        				barrels.add(b);
-        				++barrelCount;
-        				pic.setObjectLocation(b, j, i);
-        				break;
         			case 6:
-        				Barrel b1 = new Barrel(Arrays.asList(Beer.values()).get(barrelCount));
+        				Beer beer = null;
+        				//Cas d'une configuration esthétique où un fût n'est associé à rien
+        				try {
+        					beer = Arrays.asList(Beer.values()).get(barrelCount);
+        				} catch(Exception e) { }
+        				Barrel b1 = new Barrel(beer);
         				++barrelCount;
         				barrels.add(b1);
         				pic.setObjectLocation(b1, j, i);
-        				Barrel b2 = new Barrel(Arrays.asList(Beer.values()).get(barrelCount));
+        				try {
+        					beer = Arrays.asList(Beer.values()).get(barrelCount);
+        				} catch(Exception e) { }
+        				Barrel b2 = new Barrel(beer);
         				++barrelCount;
         				barrels.add(b2);
         				pic.setObjectLocation(b2, j, i);
         				break;
         			case 7: pic.setObjectLocation(cc, j, i); break;
+        			case 10: pic.setObjectLocation(new Wall(WallStatus.BOTTOM), j, i); break;
+        			case 11: pic.setObjectLocation(new Wall(WallStatus.TOP), j, i); break;
+        			case 12: pic.setObjectLocation(new Wall(WallStatus.RIGHT), j, i); break;
+        			case 13: pic.setObjectLocation(new Wall(WallStatus.LEFT), j, i); break;
+        			case 14: pic.setObjectLocation(new Wall(WallStatus.BOTTOM_LEFT), j, i); break;
+        			case 15: pic.setObjectLocation(new Wall(WallStatus.BOTTOM_RIGHT), j, i); break;
+        			case 16: pic.setObjectLocation(new Wall(WallStatus.TOP_LEFT), j, i); break;
+        			case 17: pic.setObjectLocation(new Wall(WallStatus.TOP_RIGHT), j, i); break;
+        			case 18: pic.setObjectLocation(new Wall(WallStatus.INTERSECT_VERTICAL), j, i); break;
+        			case 19: pic.setObjectLocation(new Wall(WallStatus.INTERSECT_HORIZONTAL), j, i); break;
+        			case 20: pic.setObjectLocation(new Wall(WallStatus.TOP_INTERSECT), j, i); break;
+        			case 21: pic.setObjectLocation(new Wall(WallStatus.LEFT_INTERSECT), j, i); break;
+        			case 22: pic.setObjectLocation(new Wall(WallStatus.RIGHT_INTERSECT), j, i); break;
+        			case 23: pic.setObjectLocation(new Wall(WallStatus.BOTTOM_INTERSECT), j, i); break;
+        			case 24: pic.setObjectLocation(new Wall(WallStatus.CENTER_INTERSECT), j, i); break;
+        			case 25: pic.setObjectLocation(new BarCounter(WallStatus.BOTTOM), j, i); break;
+        			case 26: pic.setObjectLocation(new BarCounter(WallStatus.RIGHT), j, i); break;
+        			case 27: pic.setObjectLocation(new BarCounter(WallStatus.BOTTOM_RIGHT), j, i); break;
+        			case 28: pic.setObjectLocation(new Chair(Direction.TOP), j, i); break;
+        			case 29: pic.setObjectLocation(new Chair(Direction.BOTTOM), j, i); break;
+        			case 30: pic.setObjectLocation(new Chair(Direction.LEFT), j, i); break;
+        			case 31: pic.setObjectLocation(new Chair(Direction.RIGHT), j, i); break;
+        			case 32: pic.setObjectLocation(new Table(), j, i); break;
+        			case 33: pic.setObjectLocation(new BigTable(), j, i); break;
         		}
         	}
         }

@@ -2,8 +2,11 @@ package View;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.util.List;
 
+import Agent.Chair;
 import Agent.Student;
+import Enum.Direction;
 import Model.Pic;
 import State.StudentState;
 import sim.engine.SimState;
@@ -19,67 +22,74 @@ import static State.StudentState.*;
 public class StudentPortrayal extends ScalablePortrayal<Student> {
 	private static final long serialVersionUID = 1L;
 	
+	private static final String baseImageName = "student";
+	
+	private static final String extension = ".png";
+	
 	/**
 	 * Modèle de la simulation
 	 */
 	Pic pic;
 	
 	public StudentPortrayal(SimState state) {
-		super(state);
-		
-		//Les étudiants sont verts
-		paint = Color.GREEN;
+		//Le dessin effectif est délayé
+		super(state, false, true);
 		
 		//Paramétrage de la classe
 		entityType = Student.class;
+		
+		pic = (Pic) state;
 	}
 	
 	@Override
 	public void draw(Object object, Graphics2D graphics, DrawInfo2D info) {
-		//Dessin de base
+		//Calcul préalable
 		super.draw(object, graphics, info);
 		
 		if(object instanceof Student) {
 			Student student = (Student) object;
-			StudentState studentState = student.getStudentState();
-            //Largeur d'un éventuel cercle intérieur
-        	int secondaryWidth = (int)(effectiveWidth / 3);
-        	
-        	//L'étudiant est vraiment trop bourré : la couleur prime sur les autres
-            if(student.isDrunk()) {
-            	graphics.setColor(Color.BLACK);
-            	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-            }
-            //L'étudiant a une bière : cercle orange mais qu'il n'est pas arrêté pour la boire
-        	else if(!student.getCup().isEmpty() && studentState != DRINKING_WITH_FRIENDS) {
-            	graphics.setColor(Color.ORANGE);
-            	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-            }
-            //L'étudiant s'en va : cercle rose
-            else if(studentState == WALKING_TO_EXIT) {
-            	graphics.setColor(Color.PINK);
-            	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-            }
-            //L'étudiant n'a plus assez d'argent : cercle rouge
-            else if(student.isVeryPoor() || studentState == POOR) {
-            	graphics.setColor(Color.RED);
-            	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-            }
-            //L'étudiant va chercher une bière : cercle bleu
-            else if(studentState == WALKING_TO_WAITING_LINE || studentState == CHOOSING_WAITING_LINE) {
-            	graphics.setColor(Color.BLUE);
-            	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-            }
-            //L'étudiant attend d'être servi
-            else if(studentState == WAITING_IN_QUEUE || studentState == WAITING_FOR_BEER) {
-            	graphics.setColor(Color.YELLOW);
-            	graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-            }
-            //L'étudiant est en train de boir avec ses amis
-            else if(studentState == DRINKING_WITH_FRIENDS) {
-				graphics.setColor(Color.WHITE);
-				graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
+			Direction direction = student.getDirection(); 
+			List<Chair> chairs = pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(student), Chair.class);
+			if(!chairs.isEmpty()) {
+				direction = chairs.get(0).getDirection();
 			}
+			String suffixDir = getDirectionSuffix(direction);
+			String suffixState = getStateSuffix(student);
+			setBackground(baseImageName + suffixDir + suffixState + extension);
 		}
+        
+        //Dessin effectif
+		drawEffectivly();
+	}
+	
+	/**
+	 * Obtient un suffixe standardisé d'image en fonction de l'état de l'étudiant
+	 * @param student Étudiant
+	 * @return Suffixe d'état
+	 */
+	public String getStateSuffix(Student student) {
+    	//L'étudiant est vraiment trop bourré : la couleur prime sur les autres
+		 if(student.isDrunk()) return "_drunk";
+		 
+         //L'étudiant a une bière : changement s'il n'est pas arrêté pour la boire
+		 else if(!student.getCup().isEmpty() && student.getStudentState() != DRINKING_WITH_FRIENDS) return "_beer";
+		 
+         //L'étudiant s'en va
+         else if(student.getStudentState() == WALKING_TO_EXIT) return "_out";
+		 
+         //L'étudiant n'a plus assez d'argent
+         else if(student.isVeryPoor() || student.getStudentState()  == POOR) return "_poor";
+		 
+         //L'étudiant va chercher une bière
+         else if(student.getStudentState()  == WALKING_TO_WAITING_LINE || student.getStudentState()  == CHOOSING_WAITING_LINE) return "_line";
+		 
+         //L'étudiant attend d'être servi
+         else if(student.getStudentState()  == WAITING_IN_QUEUE || student.getStudentState()  == WAITING_FOR_BEER) return "_waiting";
+		 
+         //L'étudiant est en train de boire avec ses amis
+         else if(student.getStudentState()  == DRINKING_WITH_FRIENDS) return "_drinking";
+		 
+		 //On ne devrait pas arriver ici
+         else return "_nothing";
 	}
 }

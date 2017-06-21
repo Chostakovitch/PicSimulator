@@ -1,6 +1,7 @@
 package Agent;
 
 import java.util.List;
+import Enum.Direction;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -91,6 +92,10 @@ public class Bartender implements Steppable {
      */
     private BartenderState bartenderState;
 
+    /**
+     * Direction physique du permanencier
+     */
+    private Direction direction;
 
     public Bartender(WaitingLine wl, int speedServe, int speedRefill, int speedCheckoutCounter, Int2D pos) {
         waitingLine = wl;
@@ -109,6 +114,7 @@ public class Bartender implements Steppable {
         timeFixingBarrel = Constant.BARTENDER_TIME_TO_FIXE_BARREL;
 
         bartenderState = NOTHING;
+        direction = Direction.BOTTOM;
     }
 
     @Override
@@ -116,12 +122,14 @@ public class Bartender implements Steppable {
         Pic pic = (Pic) state;
         switch (bartenderState) {
             case NOTHING:
+            	direction = Direction.BOTTOM;
                 if(!waitingLine.isEmpty() || currentOrder != null) {
                     takeOrder(pic);
                 }
                 break;
 
             case WAITING_CHECKOUT:
+            	direction = Direction.TOP;
                 CheckoutCounter cc = pic.getCheckoutCounter();
                 //Le permanencier est le premier de la file, il peut utiliser la caisse
                 if (cc.isMyTurnToUse(this)) {
@@ -131,6 +139,7 @@ public class Bartender implements Steppable {
                 break;
 
             case USING_CHECKOUT:
+            	direction = Direction.TOP;
             	//Le permanencier a fini d'enregistrer la transaction
                 if (timeUsingCheckoutCounter == 0) {
                     timeUsingCheckoutCounter = speedToUseCheckoutCounter;
@@ -141,6 +150,7 @@ public class Bartender implements Steppable {
                 break;
 
             case FIXING_BARREL:
+            	direction = Direction.TOP;
                 if (timeFixingBarrel == 0) {
                     timeFixingBarrel = Constant.BARTENDER_TIME_TO_FIXE_BARREL;
                     barrelUsed.fixBarrel();
@@ -154,6 +164,7 @@ public class Bartender implements Steppable {
                 break;
 
             case WAITING_BARREL:
+            	direction = Direction.TOP;
                 if (barrelUsed.isMyTurnToUse(this)) {
                     barrelUsed.useBarrel(this);
                     if(barrelUsed.isBarrelBroken()) {
@@ -174,6 +185,7 @@ public class Bartender implements Steppable {
                 break;
 
             case USING_BARREL:
+            	direction = Direction.TOP;
             	//L'étudiant est servi
                 if (timeServing == 0) {
                     //Notification de fin d'utilisation du fût
@@ -196,6 +208,7 @@ public class Bartender implements Steppable {
                 break;
 
             case REFILLING_BARREL:
+            	direction = Direction.TOP;
                 if (timeRefilling == 0) {
                     timeRefilling = speedToRefill;
                     bartenderState = USING_BARREL;
@@ -207,13 +220,15 @@ public class Bartender implements Steppable {
         }
     }
 
-    /**
+    public Direction getDirection() {
+		return direction;
+	}
+
+	/**
      * Choix d'une commande à traiter
-     *
      * @param pic pic
      */
     private void takeOrder(Pic pic) {
-//    	if(!pic.isBeerTime()) throw new IllegalStateException("Le Pic ne sert pas encore de bière!");
         Student student;
     	if(currentOrder == null) {
             currentOrder = waitingLine.getNextOrder();
