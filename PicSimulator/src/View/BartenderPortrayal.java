@@ -3,6 +3,7 @@ package View;
 import java.awt.*;
 
 import Agent.Bartender;
+import Agent.Student;
 import Model.Pic;
 import sim.engine.SimState;
 import sim.portrayal.DrawInfo2D;
@@ -14,16 +15,18 @@ import static State.BartenderState.*;
  */
 public class BartenderPortrayal extends ScalablePortrayal<Bartender> {
 	private static final long serialVersionUID = 1L;
+
+	private static final String baseImageName = "bartender";
 	
+	private static final String extension = ".png";
 	/**
 	 * Modèle de la simulation
 	 */
 	Pic pic;
 	
 	BartenderPortrayal(SimState state) {
-		super(state);
-		//Les permanenciers sont rouges
-		paint = Color.RED;
+		//Le dessin effectif est délayé
+		super(state, false, true);
 		
 		//Paramétrage de la classe
 		entityType = Bartender.class;
@@ -31,38 +34,45 @@ public class BartenderPortrayal extends ScalablePortrayal<Bartender> {
 
 	@Override
 	public void draw(Object object, Graphics2D graphics, DrawInfo2D info) {
-		//Dessin de base
+		//Calcul préalable
 		super.draw(object, graphics, info);
-
+		
 		if(object instanceof Bartender) {
 			Bartender bartender = (Bartender) object;
-			//Largeur d'un éventuel cercle intérieur
-			int secondaryWidth = (int)(effectiveWidth / 3);
-
-			if(bartender.getBartenderState() == NOTHING) {
-				graphics.setColor(Color.RED);
-				graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-			}
-			else if(bartender.getBartenderState() == WAITING_CHECKOUT ||bartender.getBartenderState() == USING_CHECKOUT) {
-				graphics.setColor(Color.PINK);
-				graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-			}
-			else if(bartender.getBartenderState() == WAITING_BARREL) {
-				graphics.setColor(Color.BLUE);
-				graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-			}
-			else if(bartender.getBartenderState() == USING_BARREL) {
-				graphics.setColor(Color.BLACK);
-				graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-			}
-			else if(bartender.getBartenderState() == REFILLING_BARREL) {
-				graphics.setColor(Color.CYAN);
-				graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-			}
-			else if(bartender.getBartenderState() == FIXING_BARREL) {
-				graphics.setColor(Color.ORANGE);
-				graphics.fillOval(x + secondaryWidth, y + secondaryWidth, secondaryWidth, secondaryWidth);
-			}
+			String suffixDir = getDirectionSuffix(bartender.getDirection());
+			String suffixState = getStateSuffix(bartender);
+			setBackground(baseImageName + suffixDir + suffixState + extension);
 		}
+        
+        //Dessin effectif
+		drawEffectivly();
+	}
+	
+	/**
+	 * Obtient un suffixe standardisé d'image en fonction de l'état du permanencier
+	 * @param bartender Permanencier
+	 * @return Suffixe d'état
+	 */
+	public String getStateSuffix(Bartender bartender) {
+		//Ne fait rien
+		if(bartender.getBartenderState() == NOTHING) return "_nothing";
+		
+		//Utilise la caisse
+		else if(bartender.getBartenderState() == WAITING_CHECKOUT ||bartender.getBartenderState() == USING_CHECKOUT) return "_checkout";
+		
+		//Attend pour le fût
+		else if(bartender.getBartenderState() == WAITING_BARREL) return "_wait";
+		
+		//Utilise le fût
+		else if(bartender.getBartenderState() == USING_BARREL) return "_barrel";
+		
+		//Remplit le fût
+		else if(bartender.getBartenderState() == REFILLING_BARREL) return "_refilling";
+		
+		//Répare le fût
+		else if(bartender.getBartenderState() == FIXING_BARREL) return "_fixing";
+		
+		//On ne devrait pas arriver ici
+		else return "_nothing";
 	}
 }

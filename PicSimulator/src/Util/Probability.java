@@ -98,7 +98,7 @@ public class Probability {
 	public static final double STUDENT_ORDER_IF_DRUNK = 0.6;
 	
 	/**
-	 * Probabilit� qu'un �tudiant renverse sa bi�re
+	 * Probabilité qu'un étudiant renverse sa bière
 	 */
 	public static final double STUDENT_SPILL_HIS_BEER = 0.05;
 	
@@ -111,4 +111,14 @@ public class Probability {
 	 * 5 minutes en moyenne pour tester réellement la prise de bières
 	 */
 	public static final double STUDENT_ORDER_SATURATION = 300;
+	
+	/**
+	 * Probabilité pour que l'étudiant change de direction physique
+	 */
+	public static final double STUDENT_CHANGE_DIRECTION = 0.4;
+	
+	/**
+	 * 30 secondes en moyenne pour changer de direction
+	 */
+	public static final double STUDENT_DIRECTION_SATURATION = 30;
 }

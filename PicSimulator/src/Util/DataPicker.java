@@ -30,7 +30,7 @@ public class DataPicker {
         BufferedReader reader;
         studentsData = new ArrayList<>();
         try {
-            reader = new BufferedReader(new FileReader("resources/parsed-data-students.csv"));
+            reader = new BufferedReader(new FileReader("resources/csv/parsed-data-students.csv"));
             String line = reader.readLine();
             while (line != null) {
                 studentsData.add(line);
@@ -45,7 +45,7 @@ public class DataPicker {
         BufferedReader reader;
         studentPerDay = new HashMap<>();
         try {
-            reader = new BufferedReader(new FileReader("resources/students_per_day.csv"));
+            reader = new BufferedReader(new FileReader("resources/csv/students_per_day.csv"));
             reader.readLine(); // Skip header
             String line = reader.readLine();
             String[] data;

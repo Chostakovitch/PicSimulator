@@ -13,7 +13,7 @@ import java.util.List;
 public class StudentParser {
 	public static void main(String[] args) {
         try {
-            CSVReader reader = openCSV("resources/raw-data-students.csv");
+            CSVReader reader = openCSV("resources/csv/raw-data-students.csv");
             parseData(reader);
         } catch (Exception e) {
             e.printStackTrace();
@@ -27,7 +27,7 @@ public class StudentParser {
     }
 
     public static void parseData(CSVReader reader) throws IOException {
-        CSVWriter writer = new CSVWriter(new FileWriter("resources/parsed-data-students.csv"));
+        CSVWriter writer = new CSVWriter(new FileWriter("resources/csv/parsed-data-students.csv"));
         String [] nextLine;
 
         while ((nextLine = reader.readNext()) != null) {
