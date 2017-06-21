@@ -203,13 +203,25 @@ public class Pic extends SimState {
      */
     public boolean isLocationFull(int x, int y) {
     	Int2D pos = new Int2D(x, y);
+    	int studentNumber = getEntitiesAtLocation(pos, Student.class).size();
+    	List<Chair> chairs = getEntitiesAtLocation(pos, Chair.class); 
     	return 
     			//Une file d'attente a une capacité illimitée
     			getEntitiesAtLocation(pos, WaitingLine.class).size() == 0 &&
-    			//On compte le nombre d'étudiants sur la case, si ce n'est pas une file d'attente
-    			getEntitiesAtLocation(pos, Student.class).size() >= Constant.MAX_STUDENT_PER_CELL;
+    			(
+    				//Pas plus d'un étudiant par chaise	
+    				(!chairs.isEmpty() && studentNumber > 0)
+    			||
+    				//On compte le nombre d'étudiants sur la case, si ce n'est pas une file d'attente
+    			 	studentNumber >= Constant.MAX_STUDENT_PER_CELL
+    			);
     }
 
+    /**
+     * Récupère le couple (fût, position) correspond à la bière demandée
+     * @param b Bière demandée
+     * @return Couple (fût, position)
+     */
     public Map.Entry<Barrel, Int2D> getBarrel(Beer b) {
     	Optional<Barrel> optionalBarrel = barrels.stream()
 				.filter(barrelInt2DEntry -> barrelInt2DEntry.getType() == b).findFirst();
@@ -477,8 +489,8 @@ public class Pic extends SimState {
         			case 27: pic.setObjectLocation(new BarCounter(WallStatus.BOTTOM_RIGHT), j, i); break;
         			case 28: pic.setObjectLocation(new Chair(Direction.TOP), j, i); break;
         			case 29: pic.setObjectLocation(new Chair(Direction.BOTTOM), j, i); break;
-        			case 30: pic.setObjectLocation(new Chair(Direction.RIGHT), j, i); break;
-        			case 31: pic.setObjectLocation(new Chair(Direction.LEFT), j, i); break;
+        			case 30: pic.setObjectLocation(new Chair(Direction.LEFT), j, i); break;
+        			case 31: pic.setObjectLocation(new Chair(Direction.RIGHT), j, i); break;
         			case 32: pic.setObjectLocation(new Table(), j, i); break;
         			case 33: pic.setObjectLocation(new BigTable(), j, i); break;
         		}
