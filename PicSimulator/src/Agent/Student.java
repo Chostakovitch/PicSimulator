@@ -252,6 +252,8 @@ public class Student implements Steppable {
 		if(isDrunk() && !cup.isEmpty() && (studentState == DRINKING_WITH_FRIENDS || studentState == NOTHING || studentState == WALKING))
 			spillBeer();
 		
+		Int2D currentPos = pic.getModel().getObjectLocation(this);
+		
         //Décision en fonction de l'état de l'étudiant
         switch(studentState) {
 	        //L'étudiant attend pour une bière, il n'a rien à faire
@@ -274,24 +276,40 @@ public class Student implements Steppable {
 	        case NOTHING: case DRINKING_WITH_FRIENDS:
 	        	//Si l'étudiant ne fait rien mais se trouve sur une case avec d'autres gens, il sociabilise + s'il n'est pas à l'entrée
 	        	if(studentState == NOTHING 
-	        		&& pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), Student.class).size() > 1
-	        		&& !pic.getModel().getObjectLocation(this).equals(Constant.PIC_ENTER))
+	        		&& pic.getEntitiesAtLocation(currentPos, Student.class).size() > 1
+	        		&& !currentPos.equals(Constant.PIC_ENTER))
 					studentState = StudentState.DRINKING_WITH_FRIENDS;
-	        	if(pic.getModel().getObjectLocation(this).equals(Constant.PIC_ENTER))
-	        		setNewWalkTarget(getPositionToWalkTo(), WALKING);
-	        	if(mustLeavePic()) setNewWalkTarget(Constant.EXIT_POSITION, WALKING_TO_EXIT);
-	        	//Choisit une file d'attente et initie un déplacement
-	        	else if(mustGetBeer()) {
-	        		WaitingLine line = chooseRandomWaitingLine();
-	        		setNewWalkTarget(pic.getModel().getObjectLocation(line), CHOOSING_WAITING_LINE);
-	        	}
-	        	//Choisit une destination aléatoire
-	        	else if(mustWalk()) setNewWalkTarget(getPositionToWalkTo(), WALKING);
 	        	
-	        	//Gestion du changement physique de direction
-	        	else {
-	        		double random = pic.random.nextDouble();
-	        		if(random < Probability.STUDENT_CHANGE_DIRECTION / Probability.STUDENT_DIRECTION_SATURATION) setRandomDirection();
+	        	//Ne reste pas à l'entrée
+	        	if(currentPos.equals(Constant.PIC_ENTER))
+	        		setNewWalkTarget(getPositionToWalkTo(), WALKING);
+	        	
+	        	//Ne reste pas sur une file d'attente
+	        	boolean lineFound = false;
+	        	List<WaitingLine> lines = pic.getEntitiesAtLocation(currentPos, WaitingLine.class);
+	        	for(WaitingLine line : lines) {
+	        		if(pic.getModel().getObjectLocation(line).equals(currentPos)) {
+	        			setNewWalkTarget(getPositionToWalkTo(), WALKING);
+	        			lineFound = true;
+	        			break;
+	        		}
+	        	}
+	        	
+	        	if(!lineFound) {
+		        	if(mustLeavePic()) setNewWalkTarget(Constant.EXIT_POSITION, WALKING_TO_EXIT);
+		        	//Choisit une file d'attente et initie un déplacement
+		        	else if(mustGetBeer()) {
+		        		WaitingLine line = chooseRandomWaitingLine();
+		        		setNewWalkTarget(pic.getModel().getObjectLocation(line), CHOOSING_WAITING_LINE);
+		        	}
+		        	//Choisit une destination aléatoire
+		        	else if(mustWalk()) setNewWalkTarget(getPositionToWalkTo(), WALKING);
+		        	
+		        	//Gestion du changement physique de direction
+		        	else {
+		        		double random = pic.random.nextDouble();
+		        		if(random < Probability.STUDENT_CHANGE_DIRECTION / Probability.STUDENT_DIRECTION_SATURATION) setRandomDirection();
+		        	}
 	        	}
 	        	break;
 	        //L'étudiant marchait, il continue sa marche
@@ -322,7 +340,7 @@ public class Student implements Steppable {
 		            	break;
 		            //S'il était juste en train de marcher, il va discuter avec des potos
 		    		default:
-		    			if(pic.getEntitiesAtLocation(pic.getModel().getObjectLocation(this), Student.class).size() > 1)
+		    			if(pic.getEntitiesAtLocation(currentPos, Student.class).size() > 1)
 		    				studentState = DRINKING_WITH_FRIENDS;
 		    			else
 		    				studentState = NOTHING;
