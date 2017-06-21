@@ -613,7 +613,8 @@ public class Student implements Steppable {
     	//S'il rentre dans le Pic il ne s'attarde pas avec des potes
     	if(pic.getModel().getObjectLocation(this).equals(Constant.PIC_ENTER)) return pic.getRandomValidLocation();
     	if(rand < Probability.STUDENT_WALK_TO_FRIEND) return pic.getStudentValidLocation(this);
-    	return pic.getRandomValidLocation();
+    	Int2D pos = pic.getRandomValidLocation();
+    	return pos;
     }
     
     /**

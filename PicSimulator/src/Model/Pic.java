@@ -246,11 +246,10 @@ public class Pic extends SimState {
     	int x;
     	int y;
     	do {
-    		x = random.nextInt(pic.getHeight());
-    		y = random.nextInt(pic.getWidth());
+    		x = random.nextInt(Constant.PIC_WIDTH);
+    		y = random.nextInt(Constant.PIC_HEIGHT);
     		pos = new Int2D(x, y);
-    		
-    	} while(!isLocationValid(x, y) || isOnWaitingLine(pos));
+    	} while(!isLocationValid(pos) || isOnWaitingLine(pos));
     	return pos;
     }
     
@@ -287,7 +286,7 @@ public class Pic extends SimState {
     	Node finalPos = new Node(end.x, end.y);
     	
     	//Construction de la grille utilisée par A*
-    	AStar aStar = new AStar(Constant.PIC_HEIGHT, Constant.PIC_WIDTH, initialPos, finalPos);
+    	AStar aStar = new AStar(Constant.PIC_WIDTH, Constant.PIC_HEIGHT, initialPos, finalPos);
     	
     	//Construction de l'ensemble des noeuds bloquants
     	List<Int2D> blocks = getAllInvalidLocations();
@@ -364,8 +363,8 @@ public class Pic extends SimState {
      */
     public List<Int2D> getAllInvalidLocations() {
     	List<Int2D> pos = new ArrayList<>();
-    	for(int i = 0; i < pic.getHeight(); ++i) {
-    		for(int j = 0; j < pic.getWidth(); ++j) {
+    	for(int i = 0; i < Constant.PIC_WIDTH; ++i) {
+    		for(int j = 0; j < Constant.PIC_HEIGHT; ++j) {
     			if(!isLocationValid(i, j)) pos.add(new Int2D(i, j));
     		}
     	}

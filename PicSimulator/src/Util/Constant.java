@@ -13,7 +13,7 @@ public class Constant {
 	/**
      * Date de la simulation
      */
-    public static LocalDate DATE = LocalDate.of(2017, 03, 10);
+    public static LocalDate DATE = LocalDate.of(2017, 02, 27);
 	/**
 	 * Largeur du Pic
 	 */

@@ -5,6 +5,7 @@ package PathFinding;
  * 
  * @author	 Marcelo Surriabre
  * @version  1.0, 2016-09-05
+ * Récupéré depuis https://github.com/marcelo-s/A-Star-Java-Implementation
  */
 public class Node {
 	private int g;

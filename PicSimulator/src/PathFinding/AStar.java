@@ -12,6 +12,7 @@ import sim.util.Int2D;
  * @author	 Marcelo Surriabre
  * @author 	 Quentin Duchemin
  * @version  1.1, 2017-06-12
+ * Adapté depuis https://github.com/marcelo-s/A-Star-Java-Implementation
  */
 public class AStar {
 	private static int HV_COST = 10;
